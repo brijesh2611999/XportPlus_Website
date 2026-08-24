@@ -869,10 +869,10 @@
             
             const fetchEndpoints = [];
             if (targetCarrier === 'ALL' || targetCarrier === 'CMA CGM') {
-                fetchEndpoints.push({ url: 'http://localhost:8000/cma/quotes', code: 'CMA CGM', prefix: 'CMA' });
+                fetchEndpoints.push({ url: 'https://xportplus-website.onrender.com/cma/quotes', code: 'CMA CGM', prefix: 'CMA' });
             }
             if (targetCarrier === 'ALL' || targetCarrier === 'MSC') {
-                fetchEndpoints.push({ url: 'http://localhost:8000/msc/quotes', code: 'MSC', prefix: 'MSC' });
+                fetchEndpoints.push({ url: 'https://xportplus-website.onrender.com/msc/quotes', code: 'MSC', prefix: 'MSC' });
             }
 
             addLog("🚀 Connecting to Xportplus Live API Gateways...", "text-amber-300");
