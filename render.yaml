@@ -2,6 +2,7 @@ services:
   - type: web
     name: xportplus-tracking-backend
     env: docker
+    rootDir: python_backend
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /
