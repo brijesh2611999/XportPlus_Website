@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XportPlus - ICEGATE Tracking & Logistics Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf9',
+                            100: '#ccfbf1',
+                            500: '#5EB89D',
+                            600: '#48a186',
+                            700: '#38836d',
+                            navy: '#1C2833',
+                            slate: '#42495A',
+                            bg: '#F8FAF9'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAF9;
+        }
+        .smooth-transition {
+            transition: all 0.25s ease-in-out;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased bg-[#F8FAF9] min-h-screen flex flex-col justify-between">
+
+    <!-- Top Navigation Header (Matching Screenshot) -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer">
+                <div class="w-10 h-10 bg-[#5EB89D] rounded-xl flex items-center justify-center text-white shadow-sm shadow-emerald-200">
+                    <i class="fa-solid font-bold fa-ship text-lg"></i>
+                </div>
+                <span class="text-2xl font-bold text-slate-800 tracking-tight">Xport<span class="text-[#5EB89D]">Plus</span></span>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="hidden md:flex items-center space-x-8 font-medium text-slate-600 text-sm">
+                <a href="#tracking" class="text-[#5EB89D] font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-[#5EB89D] fa-magnifying-glass text-xs"></i> ICEGATE Tracker
+                </a>
+                <a href="#" class="hover:text-slate-900 transition">Product</a>
+                <a href="#" class="hover:text-slate-900 transition">Features</a>
+                <a href="#" class="hover:text-slate-900 transition">Industries</a>
+                <a href="#" class="hover:text-slate-900 transition">Contact</a>
+            </nav>
+
+            <!-- Actions -->
+            <div class="flex items-center space-x-4">
+                <button class="hidden sm:flex items-center text-slate-700 hover:text-slate-900 text-sm font-medium px-3 py-2 rounded-lg hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-right-to-bracket mr-2 text-slate-400"></i> Sign In <i class="fa-solid fa-chevron-down ml-1.5 text-xs text-slate-400"></i>
+                </button>
+                <button class="bg-[#5EB89D] hover:bg-[#48a186] text-white font-medium text-sm px-5 py-2.5 rounded-xl shadow-sm shadow-emerald-200 transition">
+                    Book a Demo
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow w-full">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-10">
+            <span class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#5EB89D] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 mb-3">
+                <span class="w-2 h-2 rounded-full bg-[#5EB89D] animate-pulse"></span>
+                Official ICEGATE Data Sync
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Live ICEGATE Customs Tracking
+            </h1>
+            <p class="text-slate-500 mt-2 text-base sm:text-lg">
+                Query shipping bill status, bill of entry records, duty details, and customs workflow live from Indian Customs portal.
+            </p>
+        </div>
+
+        <!-- TRACKING SEARCH BOX CARD -->
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200/70 p-6 sm:p-8 mb-10">
+            
+            <!-- Tab Selection Buttons -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-slate-200 pb-5 gap-4">
+                <div class="inline-flex p-1 bg-slate-100 rounded-xl space-x-1 self-start sm:self-auto">
+                    <button id="tab-sb-btn" onclick="switchTab('sb')" class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm bg-white text-slate-900">
+                        <i class="fa-solid fa-file-export mr-2 text-[#5EB89D]"></i> Shipping Bill (SB)
+                    </button>
+                    <button id="tab-be-btn" onclick="switchTab('be')" class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all text-slate-500 hover:text-slate-900">
+                        <i class="fa-solid fa-file-import mr-2 text-slate-400"></i> Bill of Entry (BE)
+                    </button>
+                </div>
+
+                <!-- Quick Preset Demo Buttons -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Quick Demo:</span>
+                    <button onclick="fillDemoData('sb')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg transition border border-slate-200">
+                        Load Sample SB
+                    </button>
+                    <button onclick="fillDemoData('be')" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-1.5 rounded-lg transition border border-slate-200">
+                        Load Sample BE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form: Shipping Bill (SB) -->
+            <form id="sb-form" onsubmit="handleSearch(event, 'sb')" class="mt-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            Shipping Bill Number <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-hashtag absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="sb-number" required placeholder="e.g. 4410128" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#5EB89D] focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            Shipping Bill Date <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-regular fa-calendar absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="date" id="sb-date" required 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#5EB89D] focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            Location Code <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="sb-location" required placeholder="e.g. INCCU1 (KOLKATA SEA)" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#5EB89D] focus:bg-white transition">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="w-full sm:w-auto bg-[#5EB89D] hover:bg-[#48a186] text-white font-semibold text-sm px-8 py-3 rounded-xl shadow-md shadow-emerald-100 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-magnifying-glass"></i> Track Shipping Bill
+                    </button>
+                </div>
+            </form>
+
+            <!-- Form: Bill of Entry (BE) - Hidden initially -->
+            <form id="be-form" onsubmit="handleSearch(event, 'be')" class="mt-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            Bill of Entry Number <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-hashtag absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="be-number" required placeholder="e.g. 2323525" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#5EB89D] focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            Bill of Entry Date <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-regular fa-calendar absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="date" id="be-date" required 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#5EB89D] focus:bg-white transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                            Location Code <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                            <input type="text" id="be-location" required placeholder="e.g. INGPL6 (ICDPLIL GHUNGRANA)" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#5EB89D] focus:bg-white transition">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="w-full sm:w-auto bg-[#5EB89D] hover:bg-[#48a186] text-white font-semibold text-sm px-8 py-3 rounded-xl shadow-md shadow-emerald-100 flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-magnifying-glass"></i> Track Bill of Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- RESULTS DISPLAY CONTAINER -->
+        <div id="results-container" class="hidden space-y-6">
+            
+            <!-- Result Bar Top Action -->
+            <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-emerald-500/20 text-[#5EB89D] rounded-xl flex items-center justify-center text-xl border border-emerald-500/30">
+                        <i id="res-type-icon" class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="res-badge-type" class="text-xs font-semibold px-2.5 py-0.5 rounded bg-emerald-500/20 text-[#5EB89D] border border-emerald-500/30">SHIPPING BILL</span>
+                            <span id="res-scrapped-date" class="text-xs text-slate-400">Last Scrapped On: 30 Sep 2024</span>
+                        </div>
+                        <h2 id="res-main-title" class="text-xl sm:text-2xl font-bold mt-1 text-white">
+                            KOLKATA SEA (INCCU1) &bull; SB #4410128
+                        </h2>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                    <button onclick="copyDetails()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                        <i class="fa-regular fa-copy"></i> Copy Data
+                    </button>
+                    <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Print Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- OVERVIEW SUMMARY CARDS (Top few details visible first) -->
+            <div id="overview-summary-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- MAIN RESULTS CARD WITH "VIEW MORE INFO" COLLAPSIBLE/TABS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Customs Clearance Breakdown</h3>
+                        <p class="text-xs text-slate-500">Comprehensive ICEGATE field records synced with Indian Customs server.</p>
+                    </div>
+
+                    <!-- Toggle More Info Button -->
+                    <button id="toggle-more-btn" onclick="toggleMoreInfo()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-5 py-2.5 rounded-xl transition flex items-center gap-2">
+                        <span id="toggle-btn-text">View Full ICEGATE Details</span>
+                        <i id="toggle-btn-icon" class="fa-solid fa-chevron-down text-slate-500 transition-transform"></i>
+                    </button>
+                </div>
+
+                <!-- Always Visible Primary Fields Section -->
+                <div class="p-6 bg-slate-50/50 border-b border-slate-100">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-[#5EB89D]"></i> Key Master Attributes
+                    </h4>
+                    <div id="primary-details-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
+                        <!-- Injected via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- EXPANDABLE SECTION (Hidden by default or expanded on click) -->
+                <div id="more-info-section" class="hidden transition-all">
+                    
+                    <!-- Detail Sub-Tabs Navigation -->
+                    <div class="border-b border-slate-200 bg-slate-50 px-6 pt-3 flex space-x-6 overflow-x-auto text-sm font-semibold">
+                        <button id="detail-tab-1-btn" onclick="switchDetailTab(1)" class="pb-3 border-b-2 border-[#5EB89D] text-[#5EB89D]">
+                            Complete Master Info
+                        </button>
+                        <button id="detail-tab-2-btn" onclick="switchDetailTab(2)" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+                            Customs Workflow Status
+                        </button>
+                        <button id="detail-tab-3-btn" onclick="switchDetailTab(3)" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+                            Financial & Duty Breakdown
+                        </button>
+                        <button id="detail-tab-4-btn" onclick="switchDetailTab(4)" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+                            Rewards & Items
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Complete Master Info -->
+                    <div id="detail-tab-1" class="p-6">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Complete Document Details</h4>
+                        <div id="tab1-content-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Customs Workflow Status -->
+                    <div id="detail-tab-2" class="p-6 hidden">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Current Customs Queue & Officer Tracking</h4>
+                        <div id="tab2-content-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Financial & Duty Details -->
+                    <div id="detail-tab-3" class="p-6 hidden">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Assessable Values & Duty Payment Breakdown</h4>
+                        <div id="tab3-content-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Reward / Item Level Table (For SB) or Detailed Assessment (For BE) -->
+                    <div id="detail-tab-4" class="p-6 hidden">
+                        <div id="tab4-custom-content">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500 space-y-2">
+            <p>&copy; 2026 XportPlus Enterprise Logistics Platform. All Rights Reserved.</p>
+            <p class="text-slate-400">Data directly pulled from ICEGATE / Indian Customs National Systems. Demo simulator enabled for verification.</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Sample Mock Data structure mirroring prompt exactly
+        const MOCK_SB_DATA = {
+            type: 'SB',
+            location: 'KOLKATA SEA (INCCU1)',
+            shippingNumber: '4410128',
+            shippingDate: '28 Sep 2024',
+            lastScrappedOn: '30 Sep 2024',
+            sbDetails: {
+                iec: '289012023',
+                chaNo: 'AABCC1756DCH017',
+                jobNo: '8886626',
+                jobDate: '0000-00-00',
+                portOfCharge: 'MXZLO',
+                totalPackage: '0',
+                grossWeight: '0',
+                fobINR: '999999.99',
+                totalCessINR: '0',
+                drawback: '91973',
+                str: '0',
+                totalDbkStr: '91973',
+                cinNo: 'N.A.',
+                cinDt: '0000-00-00 00:00:00',
+                rewardFlag: 'Click here to view item wise reward details'
+            },
+            rewardItems: [
+                { id: 1, invoiceNo: '19', itemNo: 'N2', rewardFlag: '18N' },
+                { id: 2, invoiceNo: '31', itemNo: '7N', rewardFlag: '41' },
+                { id: 3, invoiceNo: '6N', itemNo: '51', rewardFlag: '13N' },
+                { id: 4, invoiceNo: '61', itemNo: '12N', rewardFlag: '71' },
+                { id: 5, invoiceNo: '11N', itemNo: '81', rewardFlag: '2N' },
+                { id: 6, invoiceNo: '91', itemNo: '3N', rewardFlag: '101' },
+                { id: 7, invoiceNo: '4N', itemNo: '11', rewardFlag: '5N' },
+                { id: 8, invoiceNo: '22', itemNo: '1N', rewardFlag: '8N' },
+            ],
+            currentStatus: {
+                warehouseCode: '0',
+                warehouseName: 'N.A.',
+                currentQue: 'EXAM_MARK',
+                currentStatus: 'TO BE MARKED',
+                appraisingDate: '0000-00-00',
+                acApr: 'N.A.',
+                acAprDate: '0000-00-00 00:00:00',
+                examMarkId: 'N.A.',
+                markDate: '0000-00-00 00:00:00',
+                inspEO: 'N.A.',
+                examDate: '0000-00-00 00:00:00',
+                supdtAOId: 'N.A.',
+                dbkAcId: 'N.A.',
+                dbkAcIdDate: '0000-00-00 00:00:00',
+                dbkSupdtId: 'N.A.',
+                dbkSupdtDate: '0000-00-00 00:00:00',
+                depbSupdt: 'N.A.',
+                depbSupdtDate: '0000-00-00 00:00:00',
+                depbLic: 'N.A.',
+                depbLicDate: '0000-00-00 00:00:00',
+                sampleDrawn: 'N.A.',
+                testReport: 'N.A.',
+                leoDate: '0000-00-00 00:00:00',
+                epCopyPrintStatus: 'N.A.',
+                printStatus: 'N.A.',
+                dbkScrollNo: 'N.A.',
+                scrollDate: '0000-00-00 00:00:00',
+                egmIntegrationStatus: 'N.A'
+            }
+        };
+
+        const MOCK_BE_DATA = {
+            type: 'BE',
+            location: 'ICDPLIL GHUNGRANA (INGPL6)',
+            entryBillNumber: '2323525',
+            entryDate: '13 Oct 2025',
+            lastScrappedOn: '14 Oct 2025',
+            beDetails: {
+                iec: '0509012341',
+                totalValue: '1,450,200.00 INR',
+                type: 'HOME CONSUMPTION (NORMAL)',
+                chaNumber: 'AAAC1234FCH001',
+                firstCheck: 'NO',
+                priorBE: 'NO',
+                sec48: 'NO',
+                appraisingGroup: 'GRP 1 (CHEMICALS)',
+                totalAssessableValue: '1,280,000.00',
+                totalPackage: '420 PKGS',
+                grossWeightKg: '8,450.50',
+                totalDutyINR: '230,400.00',
+                finePenaltyINR: '0.00',
+                wbeNumber: 'N.A.'
+            },
+            currentStatus: {
+                appraisement: 'COMPLETED',
+                currentQueue: 'OOC_QUEUE',
+                noOfQueryRaised: '0',
+                noOfQueryReplied: '0',
+                replyDate: 'N.A.',
+                replyStatus: 'NO QUERY',
+                appraisingDate: '13 Oct 2025 14:20',
+                assessableDate: '13 Oct 2025 15:10',
+                paymentDate: '13 Oct 2025 17:05',
+                examDate: '14 Oct 2025 10:30',
+                ooc: '14 Oct 2025 11:15'
+            },
+            paymentDetails: {
+                chaNo: 'AAAC1234FCH001',
+                dutyAmount: '230,400.00',
+                fineAmount: '0.00',
+                interestAmount: '0.00',
+                penalAmount: '0.00',
+                totalDuty: '230,400.00',
+                dutyPaid: '230,400.00',
+                modeOfPayment: 'E-PAYMENT (DUTY AUTOMATED)'
+            }
+        };
+
+        let currentActiveTab = 'sb'; // 'sb' or 'be'
+        let activeData = MOCK_SB_DATA;
+        let isExpanded = false;
+
+        // Switch main search form tab
+        function switchTab(type) {
+            currentActiveTab = type;
+            const sbBtn = document.getElementById('tab-sb-btn');
+            const beBtn = document.getElementById('tab-be-btn');
+            const sbForm = document.getElementById('sb-form');
+            const beForm = document.getElementById('be-form');
+
+            if (type === 'sb') {
+                sbBtn.className = "px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm bg-white text-slate-900";
+                beBtn.className = "px-5 py-2.5 rounded-lg font-semibold text-sm transition-all text-slate-500 hover:text-slate-900";
+                sbForm.classList.remove('hidden');
+                beForm.classList.add('hidden');
+            } else {
+                beBtn.className = "px-5 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm bg-white text-slate-900";
+                sbBtn.className = "px-5 py-2.5 rounded-lg font-semibold text-sm transition-all text-slate-500 hover:text-slate-900";
+                beForm.classList.remove('hidden');
+                sbForm.classList.add('hidden');
+            }
+        }
+
+        // Fill Form with Demo Data
+        function fillDemoData(type) {
+            switchTab(type);
+            if (type === 'sb') {
+                document.getElementById('sb-number').value = '4410128';
+                document.getElementById('sb-date').value = '2024-09-28';
+                document.getElementById('sb-location').value = 'INCCU1 (KOLKATA SEA)';
+            } else {
+                document.getElementById('be-number').value = '2323525';
+                document.getElementById('be-date').value = '2025-10-13';
+                document.getElementById('be-location').value = 'INGPL6 (ICDPLIL GHUNGRANA)';
+            }
+        }
+
+        // Handle Search Submit
+        function handleSearch(event, type) {
+            event.preventDefault();
+            document.getElementById('results-container').classList.remove('hidden');
+            
+            if (type === 'sb') {
+                const num = document.getElementById('sb-number').value || '4410128';
+                const loc = document.getElementById('sb-location').value || 'INCCU1';
+                const date = document.getElementById('sb-date').value || '2024-09-28';
+                
+                activeData = { ...MOCK_SB_DATA };
+                activeData.shippingNumber = num;
+                activeData.location = loc;
+                activeData.shippingDate = date;
+                renderSBData(activeData);
+            } else {
+                const num = document.getElementById('be-number').value || '2323525';
+                const loc = document.getElementById('be-location').value || 'INGPL6';
+                const date = document.getElementById('be-date').value || '2025-10-13';
+                
+                activeData = { ...MOCK_BE_DATA };
+                activeData.entryBillNumber = num;
+                activeData.location = loc;
+                activeData.entryDate = date;
+                renderBEData(activeData);
+            }
+
+            // Scroll smoothly to results
+            document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderSBData(data) {
+            document.getElementById('res-type-icon').className = "fa-solid fa-file-export";
+            document.getElementById('res-badge-type').innerText = "SHIPPING BILL (SB)";
+            document.getElementById('res-scrapped-date').innerText = `Last Scrapped On: ${data.lastScrappedOn}`;
+            document.getElementById('res-main-title').innerText = `${data.location} • SB #${data.shippingNumber}`;
+
+            // Top Overview Summary Cards
+            const overviewGrid = document.getElementById('overview-summary-grid');
+            overviewGrid.innerHTML = `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">Current Que / Status</span>
+                    <span class="text-sm font-extrabold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-1 inline-block">
+                        ${data.currentStatus.currentQue} (${data.currentStatus.currentStatus})
+                    </span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">FOB Value (INR)</span>
+                    <span class="text-base font-bold text-slate-800 mt-1 block">₹ ${data.sbDetails.fobINR}</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">Total Drawback</span>
+                    <span class="text-base font-bold text-emerald-600 mt-1 block">₹ ${data.sbDetails.drawback}</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">IEC / CHA Number</span>
+                    <span class="text-sm font-semibold text-slate-800 mt-1 block truncate">${data.sbDetails.iec}</span>
+                    <span class="text-[11px] text-slate-400 truncate block">${data.sbDetails.chaNo}</span>
+                </div>
+            `;
+
+            // Key Master Primary Attributes
+            const primaryGrid = document.getElementById('primary-details-grid');
+            primaryGrid.innerHTML = `
+                <div><span class="text-slate-400 block">Location:</span><span class="font-semibold text-slate-800">${data.location}</span></div>
+                <div><span class="text-slate-400 block">Shipping SB Number:</span><span class="font-semibold text-slate-800">${data.shippingNumber}</span></div>
+                <div><span class="text-slate-400 block">Shipping SB Date:</span><span class="font-semibold text-slate-800">${data.shippingDate}</span></div>
+                <div><span class="text-slate-400 block">IEC:</span><span class="font-semibold text-slate-800">${data.sbDetails.iec}</span></div>
+                <div><span class="text-slate-400 block">Port of Charge:</span><span class="font-semibold text-slate-800">${data.sbDetails.portOfCharge}</span></div>
+                <div><span class="text-slate-400 block">LEO Date:</span><span class="font-semibold text-slate-800">${data.currentStatus.leoDate}</span></div>
+            `;
+
+            // TAB 1: Complete SB Details
+            const tab1Grid = document.getElementById('tab1-content-grid');
+            tab1Grid.innerHTML = `
+                <div><span class="text-slate-400 block">CHA Number:</span><span class="font-medium text-slate-800">${data.sbDetails.chaNo}</span></div>
+                <div><span class="text-slate-400 block">JOB Number:</span><span class="font-medium text-slate-800">${data.sbDetails.jobNo}</span></div>
+                <div><span class="text-slate-400 block">JOB Date:</span><span class="font-medium text-slate-800">${data.sbDetails.jobDate}</span></div>
+                <div><span class="text-slate-400 block">Total Package:</span><span class="font-medium text-slate-800">${data.sbDetails.totalPackage}</span></div>
+                <div><span class="text-slate-400 block">Gross Weight:</span><span class="font-medium text-slate-800">${data.sbDetails.grossWeight}</span></div>
+                <div><span class="text-slate-400 block">CIN Number:</span><span class="font-medium text-slate-800">${data.sbDetails.cinNo}</span></div>
+                <div><span class="text-slate-400 block">CIN Date:</span><span class="font-medium text-slate-800">${data.sbDetails.cinDt}</span></div>
+                <div><span class="text-slate-400 block">Reward Flag:</span><span class="font-medium text-emerald-600">${data.sbDetails.rewardFlag}</span></div>
+            `;
+
+            // TAB 2: Customs Status
+            const tab2Grid = document.getElementById('tab2-content-grid');
+            tab2Grid.innerHTML = `
+                <div><span class="text-slate-400 block">Warehouse Code:</span><span class="font-medium text-slate-800">${data.currentStatus.warehouseCode}</span></div>
+                <div><span class="text-slate-400 block">Warehouse Name:</span><span class="font-medium text-slate-800">${data.currentStatus.warehouseName}</span></div>
+                <div><span class="text-slate-400 block">Current Que:</span><span class="font-medium text-amber-600">${data.currentStatus.currentQue}</span></div>
+                <div><span class="text-slate-400 block">Current Status:</span><span class="font-medium text-slate-800">${data.currentStatus.currentStatus}</span></div>
+                <div><span class="text-slate-400 block">Appraising Date:</span><span class="font-medium text-slate-800">${data.currentStatus.appraisingDate}</span></div>
+                <div><span class="text-slate-400 block">A.C (APR):</span><span class="font-medium text-slate-800">${data.currentStatus.acApr}</span></div>
+                <div><span class="text-slate-400 block">A.C (APR) Date:</span><span class="font-medium text-slate-800">${data.currentStatus.acAprDate}</span></div>
+                <div><span class="text-slate-400 block">Exam Mark ID:</span><span class="font-medium text-slate-800">${data.currentStatus.examMarkId}</span></div>
+                <div><span class="text-slate-400 block">Mark Date:</span><span class="font-medium text-slate-800">${data.currentStatus.markDate}</span></div>
+                <div><span class="text-slate-400 block">Insp / E.O:</span><span class="font-medium text-slate-800">${data.currentStatus.inspEO}</span></div>
+                <div><span class="text-slate-400 block">Exam Date:</span><span class="font-medium text-slate-800">${data.currentStatus.examDate}</span></div>
+                <div><span class="text-slate-400 block">Supdt / A.O. Id:</span><span class="font-medium text-slate-800">${data.currentStatus.supdtAOId}</span></div>
+                <div><span class="text-slate-400 block">Sample Drawn:</span><span class="font-medium text-slate-800">${data.currentStatus.sampleDrawn}</span></div>
+                <div><span class="text-slate-400 block">Test Report:</span><span class="font-medium text-slate-800">${data.currentStatus.testReport}</span></div>
+                <div><span class="text-slate-400 block">EGM Integration Status:</span><span class="font-medium text-slate-800">${data.currentStatus.egmIntegrationStatus}</span></div>
+            `;
+
+            // TAB 3: Drawback & Duty
+            const tab3Grid = document.getElementById('tab3-content-grid');
+            tab3Grid.innerHTML = `
+                <div><span class="text-slate-400 block">FOB (INR):</span><span class="font-medium text-slate-800">₹ ${data.sbDetails.fobINR}</span></div>
+                <div><span class="text-slate-400 block">Total Cess (INR):</span><span class="font-medium text-slate-800">₹ ${data.sbDetails.totalCessINR}</span></div>
+                <div><span class="text-slate-400 block">Drawback:</span><span class="font-medium text-slate-800">₹ ${data.sbDetails.drawback}</span></div>
+                <div><span class="text-slate-400 block">STR:</span><span class="font-medium text-slate-800">${data.sbDetails.str}</span></div>
+                <div><span class="text-slate-400 block">Total (DBK + STR):</span><span class="font-medium text-emerald-600 font-bold">₹ ${data.sbDetails.totalDbkStr}</span></div>
+                <div><span class="text-slate-400 block">DBK A.C. ID & Date:</span><span class="font-medium text-slate-800">${data.currentStatus.dbkAcId} (${data.currentStatus.dbkAcIdDate})</span></div>
+                <div><span class="text-slate-400 block">DBK Supdt. ID & Date:</span><span class="font-medium text-slate-800">${data.currentStatus.dbkSupdtId} (${data.currentStatus.dbkSupdtDate})</span></div>
+                <div><span class="text-slate-400 block">DEPB Lic & Date:</span><span class="font-medium text-slate-800">${data.currentStatus.depbLic} (${data.currentStatus.depbLicDate})</span></div>
+                <div><span class="text-slate-400 block">DBK Scroll No & Date:</span><span class="font-medium text-slate-800">${data.currentStatus.dbkScrollNo} (${data.currentStatus.scrollDate})</span></div>
+                <div><span class="text-slate-400 block">EP Copy Print Status:</span><span class="font-medium text-slate-800">${data.currentStatus.epCopyPrintStatus}</span></div>
+            `;
+
+            // TAB 4: Reward Table
+            const tab4Container = document.getElementById('tab4-custom-content');
+            tab4Container.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Item Wise Reward Details</h4>
+                    <div class="flex items-center space-x-2 text-xs text-slate-500">
+                        <span>Show</span>
+                        <select class="border border-slate-200 rounded px-2 py-1 bg-white">
+                            <option>10</option>
+                            <option>25</option>
+                            <option>50</option>
+                        </select>
+                        <span>entries</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="p-3">S.No.</th>
+                                <th class="p-3">Invoice Number</th>
+                                <th class="p-3">Item Number</th>
+                                <th class="p-3">Reward Flag</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${data.rewardItems.map(item => `
+                                <tr class="hover:bg-slate-50">
+                                    <td class="p-3 font-medium">${item.id}</td>
+                                    <td class="p-3">${item.invoiceNo}</td>
+                                    <td class="p-3">${item.itemNo}</td>
+                                    <td class="p-3 font-semibold text-emerald-600">${item.rewardFlag}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-between mt-3 text-xs text-slate-500">
+                    <span>Showing 1 to ${data.rewardItems.length} of 22 entries</span>
+                    <div class="inline-flex space-x-1">
+                        <button class="px-2.5 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">Previous</button>
+                        <button class="px-2.5 py-1 border border-slate-200 rounded bg-[#5EB89D] text-white font-bold">1</button>
+                        <button class="px-2.5 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">2</button>
+                        <button class="px-2.5 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">3</button>
+                        <button class="px-2.5 py-1 border border-slate-200 rounded bg-white hover:bg-slate-50">Next</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBEData(data) {
+            document.getElementById('res-type-icon').className = "fa-solid fa-file-import";
+            document.getElementById('res-badge-type').innerText = "BILL OF ENTRY (BE)";
+            document.getElementById('res-scrapped-date').innerText = `Last Scrapped On: ${data.lastScrappedOn}`;
+            document.getElementById('res-main-title').innerText = `${data.location} • BE #${data.entryBillNumber}`;
+
+            // Top Overview Summary Cards
+            const overviewGrid = document.getElementById('overview-summary-grid');
+            overviewGrid.innerHTML = `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">Current Que / Status</span>
+                    <span class="text-sm font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-1 inline-block">
+                        ${data.currentStatus.currentQueue} (${data.currentStatus.appraisement})
+                    </span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">Total Assessable Value</span>
+                    <span class="text-base font-bold text-slate-800 mt-1 block">₹ ${data.beDetails.totalAssessableValue}</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">Total Duty (INR)</span>
+                    <span class="text-base font-bold text-blue-600 mt-1 block">₹ ${data.beDetails.totalDutyINR}</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <span class="text-xs text-slate-400 font-medium block">OOC Cleared On</span>
+                    <span class="text-sm font-semibold text-slate-800 mt-1 block">${data.currentStatus.ooc}</span>
+                    <span class="text-[11px] text-emerald-600 font-medium block">Out of Charge Issued</span>
+                </div>
+            `;
+
+            // Key Primary Attributes
+            const primaryGrid = document.getElementById('primary-details-grid');
+            primaryGrid.innerHTML = `
+                <div><span class="text-slate-400 block">Location:</span><span class="font-semibold text-slate-800">${data.location}</span></div>
+                <div><span class="text-slate-400 block">Entry Bill Number:</span><span class="font-semibold text-slate-800">${data.entryBillNumber}</span></div>
+                <div><span class="text-slate-400 block">Entry Date:</span><span class="font-semibold text-slate-800">${data.entryDate}</span></div>
+                <div><span class="text-slate-400 block">IEC:</span><span class="font-semibold text-slate-800">${data.beDetails.iec}</span></div>
+                <div><span class="text-slate-400 block">Appraising Group:</span><span class="font-semibold text-slate-800">${data.beDetails.appraisingGroup}</span></div>
+                <div><span class="text-slate-400 block">OOC Clearance:</span><span class="font-semibold text-emerald-600">${data.currentStatus.ooc}</span></div>
+            `;
+
+            // TAB 1: Complete BE Details
+            const tab1Grid = document.getElementById('tab1-content-grid');
+            tab1Grid.innerHTML = `
+                <div><span class="text-slate-400 block">IEC:</span><span class="font-medium text-slate-800">${data.beDetails.iec}</span></div>
+                <div><span class="text-slate-400 block">Total Value:</span><span class="font-medium text-slate-800">${data.beDetails.totalValue}</span></div>
+                <div><span class="text-slate-400 block">BE Type:</span><span class="font-medium text-slate-800">${data.beDetails.type}</span></div>
+                <div><span class="text-slate-400 block">CHA Number:</span><span class="font-medium text-slate-800">${data.beDetails.chaNumber}</span></div>
+                <div><span class="text-slate-400 block">First Check:</span><span class="font-medium text-slate-800">${data.beDetails.firstCheck}</span></div>
+                <div><span class="text-slate-400 block">Prior BE:</span><span class="font-medium text-slate-800">${data.beDetails.priorBE}</span></div>
+                <div><span class="text-slate-400 block">Sec48:</span><span class="font-medium text-slate-800">${data.beDetails.sec48}</span></div>
+                <div><span class="text-slate-400 block">Appraising Group:</span><span class="font-medium text-slate-800">${data.beDetails.appraisingGroup}</span></div>
+                <div><span class="text-slate-400 block">Total Assessable Value:</span><span class="font-medium text-slate-800">₹ ${data.beDetails.totalAssessableValue}</span></div>
+                <div><span class="text-slate-400 block">Total Package:</span><span class="font-medium text-slate-800">${data.beDetails.totalPackage}</span></div>
+                <div><span class="text-slate-400 block">Gross Weight(kg):</span><span class="font-medium text-slate-800">${data.beDetails.grossWeightKg}</span></div>
+                <div><span class="text-slate-400 block">WBE Number:</span><span class="font-medium text-slate-800">${data.beDetails.wbeNumber}</span></div>
+            `;
+
+            // TAB 2: Current Status & Queue
+            const tab2Grid = document.getElementById('tab2-content-grid');
+            tab2Grid.innerHTML = `
+                <div><span class="text-slate-400 block">Appraisement:</span><span class="font-medium text-emerald-600">${data.currentStatus.appraisement}</span></div>
+                <div><span class="text-slate-400 block">Current Queue:</span><span class="font-medium text-slate-800">${data.currentStatus.currentQueue}</span></div>
+                <div><span class="text-slate-400 block">No. of Query Raised:</span><span class="font-medium text-slate-800">${data.currentStatus.noOfQueryRaised}</span></div>
+                <div><span class="text-slate-400 block">No. of Query Replied:</span><span class="font-medium text-slate-800">${data.currentStatus.noOfQueryReplied}</span></div>
+                <div><span class="text-slate-400 block">Reply Date:</span><span class="font-medium text-slate-800">${data.currentStatus.replyDate}</span></div>
+                <div><span class="text-slate-400 block">Reply Status:</span><span class="font-medium text-slate-800">${data.currentStatus.replyStatus}</span></div>
+                <div><span class="text-slate-400 block">Appraising Date:</span><span class="font-medium text-slate-800">${data.currentStatus.appraisingDate}</span></div>
+                <div><span class="text-slate-400 block">Assessable Date:</span><span class="font-medium text-slate-800">${data.currentStatus.assessableDate}</span></div>
+                <div><span class="text-slate-400 block">Payment Date:</span><span class="font-medium text-slate-800">${data.currentStatus.paymentDate}</span></div>
+                <div><span class="text-slate-400 block">Exam Date:</span><span class="font-medium text-slate-800">${data.currentStatus.examDate}</span></div>
+                <div><span class="text-slate-400 block">OOC Date:</span><span class="font-medium text-emerald-600 font-bold">${data.currentStatus.ooc}</span></div>
+            `;
+
+            // TAB 3: Payment Details
+            const tab3Grid = document.getElementById('tab3-content-grid');
+            tab3Grid.innerHTML = `
+                <div><span class="text-slate-400 block">CHA No:</span><span class="font-medium text-slate-800">${data.paymentDetails.chaNo}</span></div>
+                <div><span class="text-slate-400 block">Duty Amount:</span><span class="font-medium text-slate-800">₹ ${data.paymentDetails.dutyAmount}</span></div>
+                <div><span class="text-slate-400 block">Fine Amount:</span><span class="font-medium text-slate-800">₹ ${data.paymentDetails.fineAmount}</span></div>
+                <div><span class="text-slate-400 block">Interest Amount:</span><span class="font-medium text-slate-800">₹ ${data.paymentDetails.interestAmount}</span></div>
+                <div><span class="text-slate-400 block">Penal Amount:</span><span class="font-medium text-slate-800">₹ ${data.paymentDetails.penalAmount}</span></div>
+                <div><span class="text-slate-400 block">Total Duty:</span><span class="font-medium text-blue-600 font-bold">₹ ${data.paymentDetails.totalDuty}</span></div>
+                <div><span class="text-slate-400 block">Duty Paid:</span><span class="font-medium text-emerald-600 font-bold">₹ ${data.paymentDetails.dutyPaid}</span></div>
+                <div><span class="text-slate-400 block">Mode Of Payment:</span><span class="font-medium text-slate-800">${data.paymentDetails.modeOfPayment}</span></div>
+            `;
+
+            // TAB 4: General Remarks/Summary
+            const tab4Container = document.getElementById('tab4-custom-content');
+            tab4Container.innerHTML = `
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <i class="fa-solid fa-[#5EB89D] fa-circle-check text-xl"></i>
+                        <h4 class="font-bold text-slate-800">Out Of Charge (OOC) Issued Successfully</h4>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        All customs duties (₹ ${data.paymentDetails.totalDuty}) have been verified via ICEGATE automated payment gateway. Cargo examination is completed and ready for port exit gatepass.
+                    </p>
+                </div>
+            `;
+        }
+
+        function toggleMoreInfo() {
+            isExpanded = !isExpanded;
+            const moreSec = document.getElementById('more-info-section');
+            const toggleText = document.getElementById('toggle-btn-text');
+            const toggleIcon = document.getElementById('toggle-btn-icon');
+
+            if (isExpanded) {
+                moreSec.classList.remove('hidden');
+                toggleText.innerText = "Hide Full ICEGATE Details";
+                toggleIcon.classList.add('rotate-180');
+            } else {
+                moreSec.classList.add('hidden');
+                toggleText.innerText = "View Full ICEGATE Details";
+                toggleIcon.classList.remove('rotate-180');
+            }
+        }
+
+        function switchDetailTab(index) {
+            for (let i = 1; i <= 4; i++) {
+                const tabBtn = document.getElementById(`detail-tab-${i}-btn`);
+                const tabContent = document.getElementById(`detail-tab-${i}`);
+                if (i === index) {
+                    tabBtn.className = "pb-3 border-b-2 border-[#5EB89D] text-[#5EB89D] font-bold";
+                    tabContent.classList.remove('hidden');
+                } else {
+                    tabBtn.className = "pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium";
+                    tabContent.classList.add('hidden');
+                }
+            }
+        }
+
+        function copyDetails() {
+            const str = JSON.stringify(activeData, null, 2);
+            const el = document.createElement('textarea');
+            el.value = str;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            alert('ICEGATE audit data copied to clipboard!');
+        }
+
+        // Initialize default demo state
+        window.onload = function() {
+            fillDemoData('sb');
+        };
+    </script>
+</body>
+</html>

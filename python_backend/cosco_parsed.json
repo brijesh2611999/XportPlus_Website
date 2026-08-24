@@ -1,0 +1,27 @@
+{
+  "Title": "Cargo Tracking",
+  "TableRows": [
+    [
+      "1",
+      "FBIU5741318",
+      "Vessel",
+      "CY | CY",
+      "Gateway Terminals India Pvt.Ltd.",
+      "Vessel departure from First POL At 2026-07-27 23:14:17"
+    ],
+    [
+      "SAN FRANCISCO BRIDGE",
+      "IPE2 086E",
+      "Nhava Sheva",
+      "Expected： 2026-07-27 21:00:00 Actual： 2026-07-27 23:14:17",
+      "New York",
+      "Expected： 2026-09-02 06:00:00 Actual： Not yet arrived at port"
+    ]
+  ],
+  "Statuses": [
+    "Booking Confirmed"
+  ],
+  "Locations": [
+    "Ocean # Container# Transport Mode Traffic Term Current Location Latest Status 1 FBIU5741318 Vessel CY | CY Gateway Terminals India Pvt.Ltd. Vessel departure from First POL At 2026-07-27 23:14:17"
+  ]
+}

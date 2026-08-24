@@ -1,0 +1,411 @@
+{
+  "successCnt": 1,
+  "containerList": [],
+  "blList": [
+    {
+      "queryTrackNo": "YMJAW237351291",
+      "returnTrackNo": "W237351291",
+      "trackType": "B/L No",
+      "trackTypeCode": "BLNO",
+      "blType": " (Seaway Bill)",
+      "bkgRef": "W237351291",
+      "basicInfo": {
+        "receipt": "SHANGHAI, SH (CNSHA)",
+        "loading": "SHANGHAI, SH (CNSHA)",
+        "discharge": "LOS ANGELES, CA (USLAX)",
+        "delivery": "LOS ANGELES, CA (USLAX)",
+        "vesselName": "YM UPSURGENCE",
+        "vesselComn": "080E",
+        "voyageCode": "PS42628E",
+        "vesselCode": "YUPS",
+        "obDate": "2026/07/31",
+        "serviceTerm": "Container Yard - Container Yard",
+        "numPkg": 43,
+        "pkgType": "PK",
+        "grossWgt": 16410,
+        "grossWgtUnit": "KGS",
+        "cbm": 59.34,
+        "cbmUnit": "CBM",
+        "scacCode": "YMJA",
+        "erdCutOffDateReference": null,
+        "ctnrUnit": "2 units (2 * 40')"
+      },
+      "routingInfo": {
+        "routingSchedule": [
+          {
+            "seq": 1,
+            "picQlfr": "VESSEL",
+            "placeName": "SHANGHAI",
+            "dateTime": "2026/07/31 10:30",
+            "dateQlfr": "Actual",
+            "berthInfo": null
+          },
+          {
+            "seq": 2,
+            "picQlfr": "DESTINATION",
+            "placeName": "LOS ANGELES",
+            "dateTime": "2026/08/15 01:36",
+            "dateQlfr": "Actual",
+            "berthInfo": "Berthing time at terminal: 2026/08/15 02:48 (Actual)"
+          }
+        ],
+        "routingDschPortTml": "<A HREF=http://www.vtsocal.com/default.asp?SiteID=WBCT_LA target=_blank TITLE='Link to web site'>WEST BASIN CONTAINER TERMINAL</A> (Firms code:Y773)"
+      },
+      "additionalInfo": [
+        {
+          "infoSeq": 1,
+          "mainTitleWording": "24 Hour Advance Manifest",
+          "statusDesc": null,
+          "ymlEnsFilingType": null,
+          "filingTypeDesc": null,
+          "rowList": [
+            {
+              "seq": 1,
+              "statusTitleWording": "ACE Status (filed by carrier)",
+              "statusValue": "ACE accepted",
+              "tableData": null
+            },
+            {
+              "seq": 2,
+              "statusTitleWording": "ACI Status (filed by carrier)",
+              "statusValue": " ",
+              "tableData": null
+            },
+            {
+              "seq": 3,
+              "statusTitleWording": "ACI Sublocation Code",
+              "statusValue": " ",
+              "tableData": null
+            }
+          ]
+        },
+        {
+          "infoSeq": 2,
+          "mainTitleWording": "CBP Importer Security Filing(ISF)",
+          "statusDesc": null,
+          "ymlEnsFilingType": null,
+          "filingTypeDesc": null,
+          "rowList": [
+            {
+              "seq": 1,
+              "statusTitleWording": "ISF Status (filed by importer/broker)",
+              "statusValue": "ISF-10 accepted (3Z)",
+              "tableData": null
+            }
+          ]
+        },
+        {
+          "infoSeq": 3,
+          "mainTitleWording": "Release Status",
+          "statusDesc": null,
+          "ymlEnsFilingType": null,
+          "filingTypeDesc": null,
+          "rowList": [
+            {
+              "seq": 1,
+              "statusTitleWording": "Carrier Status",
+              "statusValue": "Steamship Release  2026/08/07 17:28",
+              "tableData": null
+            },
+            {
+              "seq": 2,
+              "statusTitleWording": "Customs Status",
+              "statusValue": "Customs Release",
+              "tableData": [
+                {
+                  "tableKind": "CustomsStatus",
+                  "tableRowList": [
+                    {
+                      "seq": 1,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/11 14:05",
+                      "eventDesc": "1C",
+                      "codeActivity": "Entered and released:  General examination",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": "BPQ40589108",
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": null,
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 2,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/11 14:05",
+                      "eventDesc": "1C",
+                      "codeActivity": "Entered and released:  General examination",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": "BPQ40589108",
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": null,
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 3,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/07 17:40",
+                      "eventDesc": "55",
+                      "codeActivity": "Carrier bill   add",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR AMEND ADD",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 4,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/07 17:40",
+                      "eventDesc": "55",
+                      "codeActivity": "Carrier bill   add",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR AMEND ADD",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 5,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/07 17:40",
+                      "eventDesc": "54",
+                      "codeActivity": "Carrier bill   delete",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR BILL DELETE",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 6,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/07 17:40",
+                      "eventDesc": "54",
+                      "codeActivity": "Carrier bill   delete",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR BILL DELETE",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 7,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/05 04:55",
+                      "eventDesc": "55",
+                      "codeActivity": "Carrier bill   add",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR AMEND ADD",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 8,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/05 04:55",
+                      "eventDesc": "55",
+                      "codeActivity": "Carrier bill   add",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR AMEND ADD",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 9,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/05 04:55",
+                      "eventDesc": "54",
+                      "codeActivity": "Carrier bill   delete",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR BILL DELETE",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    },
+                    {
+                      "seq": 10,
+                      "title": null,
+                      "value": null,
+                      "dateTime": "2026/08/05 04:55",
+                      "eventDesc": "54",
+                      "codeActivity": "Carrier bill   delete",
+                      "itNumber": null,
+                      "itLocation": null,
+                      "entryNumber": null,
+                      "pieces": 43,
+                      "districtPort": "LOS ANGELES,CA",
+                      "remarks": "CARR BILL DELETE",
+                      "ctnrNo": null,
+                      "rampLastFreeDate": null,
+                      "ctnrNum": null,
+                      "lastFreeDate": null,
+                      "place": null
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "seq": 3,
+              "statusTitleWording": "Last Free Date",
+              "statusValue": " ",
+              "tableData": null
+            },
+            {
+              "seq": 4,
+              "statusTitleWording": "Terminal Last Free Date",
+              "statusValue": " ",
+              "tableData": null
+            },
+            {
+              "seq": 5,
+              "statusTitleWording": "Ramp Last Free Date",
+              "statusValue": " ",
+              "tableData": null
+            }
+          ]
+        }
+      ],
+      "ctnrUnit": null,
+      "containerInfo": [
+        {
+          "trackPositionOut": "BL_CT",
+          "seq": 1,
+          "ctnrNo": "FBLU0148074",
+          "cnSize": "40",
+          "cnType": "HQ-9'6'' container",
+          "cnTypeDesc": null,
+          "sealNo": "YMAW568590",
+          "moveType": "FCL/FCL",
+          "moveDate": "2026/08/20 11:24",
+          "lastEvent": "Empty Returned",
+          "place": "LOS ANGELES - WEST BASIN CONTAINER TERMINAL",
+          "dportETA": null,
+          "vgm": 11390.0,
+          "vgmUnit": "KGS"
+        },
+        {
+          "trackPositionOut": "BL_CT",
+          "seq": 2,
+          "ctnrNo": "TXGU8064000",
+          "cnSize": "40",
+          "cnType": "HQ-9'6'' container",
+          "cnTypeDesc": null,
+          "sealNo": "YMAW568776",
+          "moveType": "FCL/FCL",
+          "moveDate": "2026/08/19 14:01",
+          "lastEvent": "Empty Returned",
+          "place": "LOS ANGELES - WEST BASIN CONTAINER TERMINAL",
+          "dportETA": null,
+          "vgm": 12420.0,
+          "vgmUnit": "KGS"
+        }
+      ],
+      "dcsaContainerInfo": [
+        {
+          "trackPositionOut": "BL_CT",
+          "seq": 1,
+          "ctnrNo": "FBLU0148074",
+          "cnSize": "40",
+          "cnType": "HQ-9'6'' container",
+          "cnTypeDesc": null,
+          "sealNo": "YMAW568590",
+          "moveType": "FCL/FCL",
+          "moveDate": "2026/08/20 11:24",
+          "lastEvent": "Gate in of Empty Equipment by Truck at Port terminal",
+          "place": "LOS ANGELES - WEST BASIN CONTAINER TERMINAL (WBCT)",
+          "eventClassifie": "Actual",
+          "vgm": 11390.0,
+          "vgmUnit": "KGS"
+        },
+        {
+          "trackPositionOut": "BL_CT",
+          "seq": 2,
+          "ctnrNo": "TXGU8064000",
+          "cnSize": "40",
+          "cnType": "HQ-9'6'' container",
+          "cnTypeDesc": null,
+          "sealNo": "YMAW568776",
+          "moveType": "FCL/FCL",
+          "moveDate": "2026/08/19 14:01",
+          "lastEvent": "Gate in of Empty Equipment by Truck at Port terminal",
+          "place": "LOS ANGELES - WEST BASIN CONTAINER TERMINAL (WBCT)",
+          "eventClassifie": "Actual",
+          "vgm": 12420.0,
+          "vgmUnit": "KGS"
+        }
+      ],
+      "responeMessage": null,
+      "statusCode": null
+    }
+  ],
+  "bookingList": [],
+  "emptyList": [],
+  "responeMessage": [],
+  "maintenanceInfo": null,
+  "blockStatus": null
+}

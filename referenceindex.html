@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMA-CGM Quotes Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #1a1a24;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #003366;
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: #242254;
+            margin-top: 0;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #e3000f;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #cc0000;
+        }
+
+        button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background-color: white;
+            color: #e3000f;
+            border: 1px solid #e3000f;
+        }
+
+        .btn-reset:hover {
+            background-color: #fff0f0;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            font-size: 16px;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .error {
+            background-color: #ffcccc;
+            color: #cc0000;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* Results Styles */
+        .quote-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 5px solid #003366;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quote-details {
+            flex-grow: 1;
+        }
+
+        .quote-price {
+            text-align: right;
+            min-width: 150px;
+        }
+
+        .vessel {
+            font-size: 18px;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 10px;
+        }
+
+        .dates {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .price-main {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .price-sub {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .badge {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #495057;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Get Instant Quote (CMA-CGM)</h1>
+
+        <div class="form-section">
+            <h2>Route details</h2>
+            <div class="form-group">
+                <label>Origin (POL Code)</label>
+                <select id="pol">
+                    <option value="CNSHA">CNSHA - Shanghai, China</option>
+                    <option value="ESBCN">ESBCN - Barcelona, Spain</option>
+                    <option value="INNSA">INNSA - Nhava Sheva, India</option>
+                    <option value="USLAX">USLAX - Los Angeles, USA</option>
+                    <option value="SGSIN">SGSIN - Singapore</option>
+                    <option value="USNYC">USNYC - New York, USA</option>
+                    <option value="INMUN">INMUN - Mundra, India</option>
+                    <option value="NLRTM">NLRTM - Rotterdam, Netherlands</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Destination (POD Code)</label>
+                <select id="pod">
+                    <option value="ESBCN">ESBCN - Barcelona, Spain</option>
+                    <option value="CNSHA">CNSHA - Shanghai, China</option>
+                    <option value="INNSA">INNSA - Nhava Sheva, India</option>
+                    <option value="USLAX">USLAX - Los Angeles, USA</option>
+                    <option value="SGSIN">SGSIN - Singapore</option>
+                    <option value="USNYC">USNYC - New York, USA</option>
+                    <option value="INMUN">INMUN - Mundra, India</option>
+                    <option value="NLRTM">NLRTM - Rotterdam, Netherlands</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Expected departure date</label>
+                <input type="date" id="date" value="2026-08-10">
+            </div>
+
+            <h2 style="margin-top: 30px;">Cargo details</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Container Size</label>
+                    <select id="containerSize">
+                        <option value="20ST">20' Dry Standard</option>
+                        <option value="40ST">40' Dry Standard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Weight Per Container (kg)</label>
+                    <input type="number" id="weight" value="15000">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Commodity</label>
+                <select id="commodity">
+                    <option value="FAK">FAK (Freight All Kinds)</option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <button id="submitBtn" onclick="fetchQuotes()">Get My Quote</button>
+                <button class="btn-reset" onclick="resetForm()">Reset</button>
+            </div>
+        </div>
+
+        <div id="loading">Fetching live data from CMA-CGM... Please wait...</div>
+        <div id="errorBox" class="error"></div>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function resetForm() {
+            document.getElementById('pol').value = 'CNSHA';
+            document.getElementById('pod').value = 'ESBCN';
+            document.getElementById('date').value = '2026-08-10';
+            document.getElementById('containerSize').value = '20ST';
+            document.getElementById('weight').value = '15000';
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('errorBox').style.display = 'none';
+        }
+
+        async function fetchQuotes() {
+            const loading = document.getElementById('loading');
+            const resultsBox = document.getElementById('results');
+            const errorBox = document.getElementById('errorBox');
+            const btn = document.getElementById('submitBtn');
+
+            // Build Payload
+            const payload = {
+                "Pol": document.getElementById('pol').value.toUpperCase().trim(),
+                "Pod": document.getElementById('pod').value.toUpperCase().trim(),
+                "CommodityCode": document.getElementById('commodity').value,
+                "EquipmentType": "ST", // Can be dynamic based on containerSize later
+                "Equipments": [
+                    {
+                        "EquipmentSizeType": document.getElementById('containerSize').value,
+                        "NumberOfContainers": 1,
+                        "WeightPerContainer": parseInt(document.getElementById('weight').value)
+                    }
+                ],
+                "SimulationDate": document.getElementById('date').value,
+                "PartnerCodes": ["0005562896"]
+            };
+
+            if (!payload.Pol || !payload.Pod || !payload.SimulationDate) {
+                alert("Please fill origin, destination and date.");
+                return;
+            }
+
+            // Reset UI
+            loading.style.display = 'block';
+            resultsBox.innerHTML = '';
+            errorBox.style.display = 'none';
+            btn.disabled = true;
+
+            try {
+                const fetchConfig = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                };
+
+                const [cmaRes, mscRes] = await Promise.allSettled([
+                    fetch('http://localhost:8000/cma/quotes', fetchConfig),
+                    // fetch('http://localhost:5000/msc/get-quotes', fetchConfig)
+                ]);
+
+                let allQuotes = [];
+                let errorMessages = [];
+
+                // Helper to process response
+                const processResponse = async (resPromise, lineName) => {
+                    if (resPromise && resPromise.status === 'fulfilled') {
+                        const response = resPromise.value;
+                        if (response.ok) {
+                            try {
+                                const data = await response.json();
+                                if (data.success && data.data) {
+                                    // Add shippingLine property if not present
+                                    const quotesWithLine = data.data.map(q => ({ ...q, shippingLine: q.shippingLine || lineName }));
+                                    allQuotes = allQuotes.concat(quotesWithLine);
+                                } else {
+                                    errorMessages.push(`${lineName} Error: ${data.message}`);
+                                }
+                            } catch (e) {
+                                errorMessages.push(`${lineName} Parse Error`);
+                            }
+                        } else {
+                            errorMessages.push(`${lineName} HTTP Error ${response.status}`);
+                        }
+                    } else {
+                        errorMessages.push(`${lineName} Request Failed`);
+                    }
+                };
+
+                await processResponse(cmaRes, 'CMA-CGM');
+                await processResponse(mscRes, 'MSC');
+
+                if (allQuotes.length === 0) {
+                    if (errorMessages.length > 0) {
+                        throw new Error("Failed to fetch quotes: " + errorMessages.join(" | "));
+                    } else {
+                        resultsBox.innerHTML = '<p style="text-align:center; padding: 20px; background: white; border-radius: 8px;">No quotes found for this route. Try changing the date or ports.</p>';
+                        return;
+                    }
+                }
+
+                // Sort by price (lowest first)
+                allQuotes.sort((a, b) => {
+                    const priceA = a.prices && a.prices.length > 0 ? a.prices[0].totalCharge : 999999;
+                    const priceB = b.prices && b.prices.length > 0 ? b.prices[0].totalCharge : 999999;
+                    return priceA - priceB;
+                });
+
+                if (errorMessages.length > 0) {
+                    // Show partial errors
+                    const warningBox = document.createElement('div');
+                    warningBox.className = 'error';
+                    warningBox.style.display = 'block';
+                    warningBox.style.backgroundColor = '#fff3cd';
+                    warningBox.style.color = '#856404';
+                    warningBox.textContent = `Partial Error: ${errorMessages.join(" | ")}`;
+                    resultsBox.appendChild(warningBox);
+                }
+
+                allQuotes.forEach(quote => {
+                    const depDate = new Date(quote.departureDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const arrDate = new Date(quote.arrivalDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                    let priceHtml = '<div class="price-main">Price N/A</div>';
+                    if (quote.prices && quote.prices.length > 0) {
+                        const p = quote.prices[0];
+                        priceHtml = `
+                        <div class="price-main">$${p.totalCharge.toLocaleString()}</div>
+                        <div class="price-sub">Ocean Freight: $${p.oceanFreight.toLocaleString()}</div>
+                    `;
+                    }
+
+                    // Colorize the shipping line badge
+                    const lineBadgeColor = quote.shippingLine === 'MSC' ? '#ffcc00' : '#003366';
+                    const lineBadgeText = quote.shippingLine === 'MSC' ? '#000' : '#fff';
+
+                    const card = document.createElement('div');
+                    card.className = 'quote-card';
+                    card.style.borderLeftColor = lineBadgeColor;
+                    card.innerHTML = `
+                    <div class="quote-details">
+                        <div class="vessel">
+                            <span style="background:${lineBadgeColor}; color:${lineBadgeText}; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-right: 8px; vertical-align: middle;">${quote.shippingLine}</span>
+                            <span style="vertical-align: middle;">${quote.vesselName || 'Unknown Vessel'}</span>
+                        </div>
+                        <div class="dates">
+                            <span class="badge">Transit: ${quote.transitTime} Days</span>
+                            <strong>Departure:</strong> ${depDate} &nbsp;➔&nbsp; <strong>Arrival:</strong> ${arrDate}
+                        </div>
+                    </div>
+                    <div class="quote-price">
+                        ${priceHtml}
+                    </div>
+                `;
+                    resultsBox.appendChild(card);
+                });
+
+            } catch (error) {
+                errorBox.textContent = `Error: ${error.message}`;
+                errorBox.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+
+</html>

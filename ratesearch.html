@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xportplus - Rate Management System & Profit Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef6ff',
+              100: '#e0edff',
+              500: '#2563eb',
+              600: '#1d4ed8',
+              700: '#1e40af',
+              800: '#1e3a8a',
+              900: '#0f172a',
+            },
+            ocean: {
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-brand-600 to-ocean-500 text-white p-2.5 rounded-xl flex items-center justify-center font-extrabold text-xl shadow-lg">
+          <i class="fa-solid fa-boxes-packing"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="font-extrabold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-300">Xportplus</h1>
+            <span class="bg-brand-500/20 text-brand-300 text-xs px-2.5 py-0.5 rounded-full border border-brand-500/30 font-semibold tracking-wide">RMS & Tariff Engine</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Multi-Modal Freight Rates, Dynamic Margins & Profit Calculator</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <!-- Automation Status -->
+        <div id="engineStatusBadge" class="hidden sm:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span class="font-medium text-slate-300">Live Rate API Connected</span>
+        </div>
+
+        <button onclick="triggerRateSync()" class="bg-gradient-to-r from-brand-600 to-ocean-600 hover:from-brand-500 hover:to-ocean-500 text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition flex items-center space-x-2">
+          <i class="fa-solid fa-rotate text-amber-300"></i>
+          <span>Fetch Carrier Tariffs</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+
+    <!-- Primary Mode Selector & Query Filters Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+      
+      <!-- Top Row: Mode Tabs & Quick Stats -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        
+        <!-- Freight Mode Switcher -->
+        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 self-start md:self-auto">
+          <button id="modeAllBtn" onclick="setModeFilter('ALL')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-xs transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-layer-group text-slate-500"></i>
+            <span>All Modes</span>
+          </button>
+          <button id="modeSeaFclBtn" onclick="setModeFilter('SEA_FCL')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-ship text-ocean-600"></i>
+            <span>Sea FCL</span>
+          </button>
+          <button id="modeSeaLclBtn" onclick="setModeFilter('SEA_LCL')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-box-open text-teal-600"></i>
+            <span>Sea LCL</span>
+          </button>
+          <button id="modeAirBtn" onclick="setModeFilter('AIR')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-plane-departure text-brand-600"></i>
+            <span>Air Freight</span>
+          </button>
+        </div>
+
+        <!-- Selected Query Summary Info -->
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-200 font-semibold">
+            <i class="fa-solid fa-location-dot text-brand-600 mr-1"></i> Origin: INBOM / BOM
+          </span>
+          <span class="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-200 font-semibold">
+            <i class="fa-solid fa-location-arrow text-brand-600 mr-1"></i> Dest: USJFK / USNYC
+          </span>
+          <span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-md border border-emerald-200 font-semibold">
+            <i class="fa-solid fa-file-contract text-emerald-600 mr-1"></i> FOB / CIF Quotes
+          </span>
+        </div>
+
+      </div>
+
+      <!-- RMS Filter Controls Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        
+        <!-- Origin Selector -->
+        <div>
+          <label for="originSelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Origin Port / Airport</label>
+          <div class="relative">
+            <select id="originSelect" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="ALL">All Origins</option>
+              <option value="BOM" selected>BOM / INBOM (Mumbai / Nhava Sheva)</option>
+              <option value="SHA">SHA / CNSHA (Shanghai Port)</option>
+              <option value="SIN">SIN / SGSIN (Singapore)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Destination Selector -->
+        <div>
+          <label for="destSelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Destination Port / Airport</label>
+          <div class="relative">
+            <select id="destSelect" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+              <option value="ALL">All Destinations</option>
+              <option value="NYC" selected>USNYC / JFK (New York Port / Airport)</option>
+              <option value="LAX">USLAX (Los Angeles)</option>
+              <option value="ROT">NLRTM (Rotterdam)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Carrier Filter -->
+        <div>
+          <label for="carrierSelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Carrier Line</label>
+          <select id="carrierSelect" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            <option value="ALL">All Carriers</option>
+            <option value="Maersk">Maersk Line</option>
+            <option value="MSC">MSC Shipping</option>
+            <option value="CMA CGM">CMA CGM</option>
+            <option value="Hapag-Lloyd">Hapag-Lloyd</option>
+            <option value="Emirates">Emirates SkyCargo</option>
+            <option value="Qatar">Qatar Airways Cargo</option>
+          </select>
+        </div>
+
+        <!-- Commodity Type -->
+        <div>
+          <label for="commoditySelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Commodity / Cargo</label>
+          <select id="commoditySelect" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            <option value="ALL">General Cargo (FAK)</option>
+            <option value="HAZ">Hazardous Cargo (DG)</option>
+            <option value="REEFER">Reefer / Temp Controlled</option>
+            <option value="GARMENTS">Textiles / Garments</option>
+          </select>
+        </div>
+
+        <!-- Incoterm / Equipment Filter -->
+        <div>
+          <label for="equipmentSelect" class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Container / Equipment</label>
+          <select id="equipmentSelect" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            <option value="ALL">All Equipment</option>
+            <option value="40HC">40' High Cube Container</option>
+            <option value="20GP">20' General Purpose</option>
+            <option value="LCL_CBM">LCL Loose Cargo (per CBM)</option>
+            <option value="AIR_KG">Air Chargeable Weight (520 KG)</option>
+          </select>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="syncConsole" class="hidden bg-slate-900 text-slate-200 rounded-2xl p-4 border border-slate-800 shadow-xl transition-all">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-xs">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-network-wired text-brand-400"></i>
+          <span class="font-mono font-semibold text-slate-300">Xportplus Rate Engine Pipeline (Direct API & Ocean Tariff DB)</span>
+        </div>
+        <span id="syncStepBadge" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-mono">SYNCHRONIZING TARUFFS</span>
+      </div>
+
+      <div id="syncLogContainer" class="font-mono text-[11px] text-slate-400 bg-slate-950 p-3 rounded-xl h-20 overflow-y-auto custom-scrollbar space-y-1 border border-slate-800">
+        <p class="text-slate-500">[00:00:01] Querying Xportplus Tariff Repository for Air & Ocean routes...</p>
+      </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      
+      <!-- Left side: Results Count & Sorting -->
+      <div class="flex items-center space-x-3">
+        <div class="text-sm font-semibold text-slate-800">
+          Found <span id="resultsCount" class="text-brand-600 font-bold">6</span> Verified Rate Quotes
+        </div>
+
+        <div class="h-4 w-px bg-slate-300"></div>
+
+        <!-- Sorting dropdown -->
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-500 font-semibold">Sort:</span>
+          <select id="sortSelect" onchange="handleSortChange()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="cheapest">Cost: Low to High</option>
+            <option value="fastest">Transit Time: Shortest</option>
+            <option value="co2">Lowest CO₂ Footprint</option>
+            <option value="carrier">Carrier Name</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Right side: Margin Markup & Profit Control Hub -->
+      <div class="flex flex-wrap items-center gap-3">
+        
+        <!-- Live Markup % Control -->
+        <div class="bg-white border border-slate-200 px-3.5 py-2 rounded-xl shadow-sm flex items-center space-x-3">
+          <i class="fa-solid fa-chart-line text-emerald-600 text-sm"></i>
+          <div class="flex items-center space-x-2">
+            <label for="marginSlider" class="text-xs font-bold text-slate-700 whitespace-nowrap">Global Profit Margin:</label>
+            <input type="range" id="marginSlider" min="0" max="40" value="15" step="1" oninput="updateMarginMarkup(this.value)" class="w-20 sm:w-28 accent-emerald-600 cursor-pointer">
+            <span id="marginValue" class="text-xs font-extrabold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg border border-emerald-200">15%</span>
+          </div>
+        </div>
+
+        <!-- Toggle View Buttons -->
+        <div class="flex items-center bg-slate-200 p-1 rounded-xl">
+          <button id="viewCardBtn" onclick="switchView('card')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-800 shadow-xs transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-border-all"></i>
+            <span>Cards</span>
+          </button>
+          <button id="viewTableBtn" onclick="switchView('table')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-table-cells"></i>
+            <span>Matrix Table</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <div id="rateCardsContainer" class="grid grid-cols-1 gap-5">
+      <!-- Dynamically populated -->
+    </div>
+
+    <div id="rateTableContainer" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
+              <th class="py-3.5 px-4">Mode / Carrier</th>
+              <th class="py-3.5 px-4">Equipment / Cargo</th>
+              <th class="py-3.5 px-4">Route</th>
+              <th class="py-3.5 px-4">Transit</th>
+              <th class="py-3.5 px-4">Buy Price (Net)</th>
+              <th class="py-3.5 px-4">Margin (%)</th>
+              <th class="py-3.5 px-4 text-emerald-700">Profit ($)</th>
+              <th class="py-3.5 px-4 font-extrabold">Client Sell Quote</th>
+              <th class="py-3.5 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rateTableBody" class="divide-y divide-slate-100 text-slate-700">
+            <!-- Table rows populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="marginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center space-x-3">
+          <div id="modalCarrierCode" class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-ocean-600 text-white flex items-center justify-center font-bold text-sm shadow-inner">
+            MSK
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h3 id="modalCarrierTitle" class="font-bold text-base">Maersk Line - Rate & Profit Studio</h3>
+              <span id="modalModeBadge" class="bg-ocean-500/20 text-ocean-300 border border-ocean-500/30 text-[10px] px-2 py-0.5 rounded font-mono">SEA FCL</span>
+            </div>
+            <p id="modalSubTitle" class="text-xs text-slate-400">INBOM → USNYC | 1x 40' High Cube Container</p>
+          </div>
+        </div>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl p-1 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+        
+        <!-- Live Margin Calculator Banner -->
+        <div class="bg-slate-900 text-white p-4 rounded-xl border border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-4 items-center">
+          <div>
+            <span class="text-[11px] text-slate-400 block">Total Buy Cost</span>
+            <span id="modalBuyTotal" class="text-lg font-mono font-bold text-slate-200">$2,850.00</span>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 block">Set Quote Margin</span>
+            <div class="flex items-center space-x-1 mt-0.5">
+              <input type="number" id="modalMarginInput" value="15" min="0" max="100" oninput="recalculateModalTotals()" class="w-16 bg-slate-800 border border-slate-700 text-emerald-400 font-bold text-xs rounded px-2 py-1 text-center focus:outline-none focus:ring-1 focus:ring-emerald-500">
+              <span class="text-xs text-slate-400">%</span>
+            </div>
+          </div>
+          <div>
+            <span class="text-[11px] text-slate-400 block">Gross Profit</span>
+            <span id="modalProfitAmount" class="text-lg font-mono font-bold text-emerald-400">+$427.50</span>
+          </div>
+          <div class="sm:text-right bg-slate-800/80 p-2.5 rounded-lg border border-slate-700">
+            <span class="text-[10px] text-brand-300 block uppercase font-bold">Client Sell Quote</span>
+            <span id="modalSellTotal" class="text-xl font-mono font-extrabold text-white">$3,277.50</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Itemized Tariff Charge Breakdown</h4>
+            <span class="text-xs text-slate-500">All prices in <strong class="text-slate-800">USD</strong></span>
+          </div>
+
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-600 border-b border-slate-200 font-bold uppercase text-[10px]">
+                <th class="p-2.5">Line Item</th>
+                <th class="p-2.5">Category</th>
+                <th class="p-2.5">Basis</th>
+                <th class="p-2.5 text-right">Buy Rate</th>
+                <th class="p-2.5 text-right text-emerald-700">Profit ($)</th>
+                <th class="p-2.5 text-right font-bold">Sell Amount</th>
+              </tr>
+            </thead>
+            <tbody id="modalChargeRows" class="divide-y divide-slate-100">
+              <!-- Dynamic line charges -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Profitability Insights Box -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start space-x-3">
+          <i class="fa-solid fa-circle-check text-emerald-600 text-base mt-0.5"></i>
+          <div class="text-xs">
+            <h5 class="font-bold text-emerald-900">Xportplus Profit Yield Assessment</h5>
+            <p class="text-emerald-700 mt-0.5">This quote achieves a <strong id="modalYieldPercentage">13.04% Gross Margin Yield</strong> with zero tariff conflict. Free time at destination: <strong>14 Days Demurrage / Detention included</strong>.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span class="text-xs text-slate-500"><i class="fa-solid fa-shield-halved text-brand-600 mr-1"></i> Verified Rate Sheet • Guaranteed Space</span>
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+          <button onclick="closeModal()" class="flex-1 sm:flex-none px-4 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition">Close</button>
+          <button onclick="confirmBooking()" class="flex-1 sm:flex-none px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold rounded-xl hover:from-emerald-500 hover:to-teal-500 shadow-md transition flex items-center justify-center space-x-1.5">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Confirm & Generate Proposal</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Multi-Modal Freight Dataset (Air & Sea FCL/LCL)
+    let masterRatesData = [
+      {
+        id: "R-SEA-201",
+        mode: "SEA_FCL",
+        rate_source: "Xportplus Direct Ocean Tariff",
+        carrier_name: "Maersk Line",
+        carrier_code: "MSK",
+        carrier_logo: "https://placehold.co/80x80/00243a/ffffff?text=MAERSK",
+        rate_type: "Ocean FCL Contract",
+        origin: "BOM (Nhava Sheva - INBOM)",
+        destination: "NYC (New York - USNYC)",
+        transit_time: "22-25 Days",
+        departure_date: "2026-08-18",
+        arrival_date: "2026-09-12",
+        vessel_voyage: "MAERSK MC-KINNEY / 2408W",
+        equipment: "40' High Cube (40HC)",
+        commodity: "General Cargo (FAK)",
+        incoterm: "FOB",
+        buy_price: 2850.00,
+        currency: "USD",
+        validity_until: "2026-08-31",
+        co2_emission: "0.85 Tons CO₂/TEU",
+        charges: [
+          { charge_name: "Ocean Freight", charge_type: "Base Freight", basis: "Per Container", rate: 2200.00, amount: 2200.00 },
+          { charge_name: "Bunker Adjustment (BAF)", charge_type: "Surcharge", basis: "Per Container", rate: 350.00, amount: 350.00 },
+          { charge_name: "Origin Terminal Handling (THC)", charge_type: "Origin", basis: "Flat", rate: 180.00, amount: 180.00 },
+          { charge_name: "Bill of Lading Doc Fee", charge_type: "Documentation", basis: "Flat", rate: 120.00, amount: 120.00 }
+        ]
+      },
+      {
+        id: "R-SEA-202",
+        mode: "SEA_FCL",
+        rate_source: "Xportplus Partner Contract",
+        carrier_name: "MSC Shipping",
+        carrier_code: "MSC",
+        carrier_logo: "https://placehold.co/80x80/1e293b/ffffff?text=MSC",
+        rate_type: "Ocean FCL Spot",
+        origin: "BOM (Nhava Sheva - INBOM)",
+        destination: "NYC (New York - USNYC)",
+        transit_time: "24-28 Days",
+        departure_date: "2026-08-20",
+        arrival_date: "2026-09-17",
+        vessel_voyage: "MSC ISABELLA / 432E",
+        equipment: "40' High Cube (40HC)",
+        commodity: "General Cargo (FAK)",
+        incoterm: "FOB",
+        buy_price: 2620.00,
+        currency: "USD",
+        validity_until: "2026-08-28",
+        co2_emission: "0.88 Tons CO₂/TEU",
+        charges: [
+          { charge_name: "Basic Ocean Freight", charge_type: "Base Freight", basis: "Per Container", rate: 2000.00, amount: 2000.00 },
+          { charge_name: "Low Sulfur Surcharge (LSS)", charge_type: "Surcharge", basis: "Per Container", rate: 320.00, amount: 320.00 },
+          { charge_name: "Origin THC", charge_type: "Origin", basis: "Flat", rate: 180.00, amount: 180.00 },
+          { charge_name: "ISPS Security Fee", charge_type: "Surcharge", basis: "Flat", rate: 120.00, amount: 120.00 }
+        ]
+      },
+      {
+        id: "R-SEA-203",
+        mode: "SEA_LCL",
+        rate_source: "Xportplus Consolidation DB",
+        carrier_name: "CMA CGM",
+        carrier_code: "CMA",
+        carrier_logo: "https://placehold.co/80x80/0284c7/ffffff?text=CMA",
+        rate_type: "Ocean LCL Consolidation",
+        origin: "BOM (Nhava Sheva - INBOM)",
+        destination: "NYC (New York - USNYC)",
+        transit_time: "26-30 Days",
+        departure_date: "2026-08-19",
+        arrival_date: "2026-09-18",
+        vessel_voyage: "CMA CGM JACQUES SAADE",
+        equipment: "8.50 CBM / LCL Cargo",
+        commodity: "General Cargo (FAK)",
+        incoterm: "CIF",
+        buy_price: 1450.00,
+        currency: "USD",
+        validity_until: "2026-08-25",
+        co2_emission: "0.42 Tons CO₂",
+        charges: [
+          { charge_name: "LCL Base Ocean Freight", charge_type: "Base Freight", basis: "8.5 CBM", rate: 111.76, amount: 950.00 },
+          { charge_name: "Bunker Surcharge", charge_type: "Surcharge", basis: "8.5 CBM", rate: 25.88, amount: 220.00 },
+          { charge_name: "CFS Origin Station Charge", charge_type: "Origin", basis: "Flat", rate: 180.00, amount: 180.00 },
+          { charge_name: "LCL Manifest Fee", charge_type: "Documentation", basis: "Flat", rate: 100.00, amount: 100.00 }
+        ]
+      },
+      {
+        id: "R-AIR-101",
+        mode: "AIR",
+        rate_source: "Xportplus Air API Connector",
+        carrier_name: "Emirates SkyCargo",
+        carrier_code: "EK",
+        carrier_logo: "https://placehold.co/80x80/d97706/ffffff?text=EK",
+        rate_type: "Air Express Rate",
+        origin: "BOM (Mumbai Intl - BOM)",
+        destination: "NYC (New York JFK - JFK)",
+        transit_time: "24-30 Hours",
+        departure_date: "2026-08-15",
+        arrival_date: "2026-08-16",
+        vessel_voyage: "EK-501 / EK-201 (1-Stop DXB)",
+        equipment: "520.0 KGS / 2.8 CBM Air",
+        commodity: "General Cargo (FAK)",
+        incoterm: "FOB",
+        buy_price: 3120.00,
+        currency: "USD",
+        validity_until: "2026-08-22",
+        co2_emission: "1.42 Tons CO₂",
+        charges: [
+          { charge_name: "Air Freight Base Rate", charge_type: "Base Freight", basis: "520 KGS", rate: 5.20, amount: 2704.00 },
+          { charge_name: "Fuel Surcharge (FSC)", charge_type: "Surcharge", basis: "520 KGS", rate: 0.50, amount: 260.00 },
+          { charge_name: "Security Charge (ISS)", charge_type: "Surcharge", basis: "Flat", rate: 45.00, amount: 45.00 },
+          { charge_name: "Origin Air Handling (THC)", charge_type: "Origin", basis: "Flat", rate: 111.00, amount: 111.00 }
+        ]
+      },
+      {
+        id: "R-AIR-102",
+        mode: "AIR",
+        rate_source: "Xportplus Air API Connector",
+        carrier_name: "Qatar Airways Cargo",
+        carrier_code: "QR",
+        carrier_logo: "https://placehold.co/80x80/7e22ce/ffffff?text=QR",
+        rate_type: "Air Standard Promo",
+        origin: "BOM (Mumbai Intl - BOM)",
+        destination: "NYC (New York JFK - JFK)",
+        transit_time: "22-26 Hours",
+        departure_date: "2026-08-15",
+        arrival_date: "2026-08-16",
+        vessel_voyage: "QR-557 / QR-701 (1-Stop DOH)",
+        equipment: "520.0 KGS / 2.8 CBM Air",
+        commodity: "General Cargo (FAK)",
+        incoterm: "FOB",
+        buy_price: 2980.00,
+        currency: "USD",
+        validity_until: "2026-08-20",
+        co2_emission: "1.38 Tons CO₂",
+        charges: [
+          { charge_name: "Air Freight Base", charge_type: "Base Freight", basis: "520 KGS", rate: 4.90, amount: 2548.00 },
+          { charge_name: "Fuel Surcharge", charge_type: "Surcharge", basis: "520 KGS", rate: 0.60, amount: 312.00 },
+          { charge_name: "Terminal Cargo Fee", charge_type: "Origin", basis: "Flat", rate: 120.00, amount: 120.00 }
+        ]
+      },
+      {
+        id: "R-SEA-204",
+        mode: "SEA_FCL",
+        rate_source: "Xportplus Ocean Tariff",
+        carrier_name: "Hapag-Lloyd",
+        carrier_code: "HL",
+        carrier_logo: "https://placehold.co/80x80/ea580c/ffffff?text=HAPAG",
+        rate_type: "Ocean FCL Contract",
+        origin: "BOM (Nhava Sheva - INBOM)",
+        destination: "NYC (New York - USNYC)",
+        transit_time: "21-24 Days",
+        departure_date: "2026-08-17",
+        arrival_date: "2026-09-08",
+        vessel_voyage: "EXPRESS MUNCHEN / 012W",
+        equipment: "20' General Purpose (20GP)",
+        commodity: "General Cargo (FAK)",
+        incoterm: "FOB",
+        buy_price: 2100.00,
+        currency: "USD",
+        validity_until: "2026-08-29",
+        co2_emission: "0.65 Tons CO₂/TEU",
+        charges: [
+          { charge_name: "Ocean Freight 20GP", charge_type: "Base Freight", basis: "Per Container", rate: 1650.00, amount: 1650.00 },
+          { charge_name: "Bunker Adjustment (BAF)", charge_type: "Surcharge", basis: "Per Container", rate: 250.00, amount: 250.00 },
+          { charge_name: "Origin THC", charge_type: "Origin", basis: "Flat", rate: 120.00, amount: 120.00 },
+          { charge_name: "Container Seal Charge", charge_type: "Equipment", basis: "Flat", rate: 80.00, amount: 80.00 }
+        ]
+      }
+    ];
+
+    let activeFilterMode = 'ALL';
+    let currentMarginPercent = 15;
+    let currentView = 'card';
+    let activeSelectedRateId = null;
+
+    function renderRates() {
+      const cardContainer = document.getElementById('rateCardsContainer');
+      const tableBody = document.getElementById('rateTableBody');
+      
+      cardContainer.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      // Filter rates based on mode and UI dropdowns
+      const filteredRates = masterRatesData.filter(rate => {
+        if (activeFilterMode !== 'ALL' && rate.mode !== activeFilterMode) return false;
+        
+        const carrierVal = document.getElementById('carrierSelect').value;
+        if (carrierVal !== 'ALL' && !rate.carrier_name.includes(carrierVal)) return false;
+
+        const equipVal = document.getElementById('equipmentSelect').value;
+        if (equipVal !== 'ALL') {
+          if (equipVal === '40HC' && !rate.equipment.includes('40HC')) return false;
+          if (equipVal === '20GP' && !rate.equipment.includes('20GP')) return false;
+          if (equipVal === 'LCL_CBM' && rate.mode !== 'SEA_LCL') return false;
+          if (equipVal === 'AIR_KG' && rate.mode !== 'AIR') return false;
+        }
+
+        return true;
+      });
+
+      document.getElementById('resultsCount').innerText = filteredRates.length;
+
+      filteredRates.forEach((rate) => {
+        // Live profit calculations
+        const marginDecimal = currentMarginPercent / 100;
+        const sellPrice = rate.buy_price * (1 + marginDecimal);
+        const profitAmount = sellPrice - rate.buy_price;
+
+        // Mode Specific Styling & Icons
+        let modeBadgeHtml = '';
+        if (rate.mode === 'SEA_FCL') {
+          modeBadgeHtml = `<span class="bg-ocean-50 text-ocean-700 border border-ocean-200 text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-ship mr-1"></i> SEA FCL</span>`;
+        } else if (rate.mode === 'SEA_LCL') {
+          modeBadgeHtml = `<span class="bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-box-open mr-1"></i> SEA LCL</span>`;
+        } else {
+          modeBadgeHtml = `<span class="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold px-2 py-0.5 rounded"><i class="fa-solid fa-plane-departure mr-1"></i> AIR FREIGHT</span>`;
+        }
+
+        // --- 1. CARD VIEW HTML ---
+        const cardHtml = `
+          <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 overflow-hidden flex flex-col lg:flex-row group">
+            
+            <!-- Left Column: Carrier & Equipment Specs -->
+            <div class="p-5 lg:p-6 lg:w-1/3 border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col justify-between bg-gradient-to-br from-white via-slate-50/30 to-slate-50/80">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <div class="flex items-center space-x-3">
+                    <img src="${rate.carrier_logo}" alt="${rate.carrier_name}" class="w-11 h-11 rounded-xl shadow-xs border border-slate-200 object-cover">
+                    <div>
+                      <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-600 transition">${rate.carrier_name}</h3>
+                      <p class="text-[11px] text-slate-500 font-medium">${rate.rate_source}</p>
+                    </div>
+                  </div>
+                  ${modeBadgeHtml}
+                </div>
+
+                <!-- Badges Row -->
+                <div class="flex flex-wrap gap-1.5 mb-4">
+                  <span class="bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded">
+                    ${rate.equipment}
+                  </span>
+                  <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold px-2 py-0.5 rounded">
+                    ${rate.incoterm} Terms
+                  </span>
+                  <span class="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-medium px-2 py-0.5 rounded">
+                    <i class="fa-solid fa-leaf text-teal-600 mr-1"></i> ${rate.co2_emission}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Service Details Box -->
+              <div class="text-xs text-slate-500 space-y-1 bg-slate-100/70 p-3 rounded-xl border border-slate-200/70">
+                <div class="flex justify-between">
+                  <span>Voyage / Flight:</span>
+                  <strong class="text-slate-800 font-mono">${rate.vessel_voyage}</strong>
+                </div>
+                <div class="flex justify-between">
+                  <span>Commodity:</span>
+                  <strong class="text-slate-800">${rate.commodity}</strong>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Middle Column: Route Timeline -->
+            <div class="p-5 lg:p-6 lg:w-2/5 border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col justify-center">
+              
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-left">
+                  <span class="text-2xl font-black text-slate-800 block tracking-tight">${rate.origin.split(' ')[0]}</span>
+                  <span class="text-[11px] text-slate-500 font-medium">ETD: ${rate.departure_date}</span>
+                </div>
+
+                <!-- Visual Line -->
+                <div class="flex-1 px-4 flex flex-col items-center">
+                  <span class="text-[10px] font-bold text-brand-600 bg-brand-50 px-2.5 py-0.5 rounded-full border border-brand-200 mb-1">
+                    <i class="fa-regular fa-clock mr-1"></i> ${rate.transit_time}
+                  </span>
+                  <div class="w-full flex items-center">
+                    <div class="h-2 w-2 rounded-full bg-brand-600"></div>
+                    <div class="h-0.5 flex-1 bg-gradient-to-r from-brand-600 via-brand-400 to-ocean-600 relative">
+                      <i class="fa-solid ${rate.mode === 'AIR' ? 'fa-plane' : 'fa-ship'} text-brand-600 text-xs absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-1"></i>
+                    </div>
+                    <div class="h-2 w-2 rounded-full bg-ocean-600"></div>
+                  </div>
+                  <span class="text-[10px] text-slate-400 mt-1">Direct Route Sync</span>
+                </div>
+
+                <div class="text-right">
+                  <span class="text-2xl font-black text-slate-800 block tracking-tight">${rate.destination.split(' ')[0]}</span>
+                  <span class="text-[11px] text-slate-500 font-medium">ETA: ${rate.arrival_date}</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between text-xs pt-3 border-t border-slate-100">
+                <span class="text-slate-500">Tariff Expiry: <strong class="text-amber-600 font-medium">${rate.validity_until}</strong></span>
+                <button onclick="openMarginModal('${rate.id}')" class="text-brand-600 hover:text-brand-800 font-bold hover:underline flex items-center space-x-1">
+                  <span>View ${rate.charges.length} Line Charges</span>
+                  <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Right Column: Buy, Margin & Client Sell Studio -->
+            <div class="p-5 lg:p-6 lg:w-1/4 bg-slate-50/60 flex flex-col justify-between">
+              
+              <div>
+                <!-- Cost Breakdown -->
+                <div class="flex justify-between items-baseline mb-1">
+                  <span class="text-xs text-slate-500">Buy Rate (Net):</span>
+                  <span class="text-xs font-mono font-medium text-slate-600">${rate.currency} $${rate.buy_price.toFixed(2)}</span>
+                </div>
+
+                <div class="flex justify-between items-baseline mb-1">
+                  <span class="text-xs text-slate-500">Gross Margin (${currentMarginPercent}%):</span>
+                  <span class="text-xs font-mono font-bold text-emerald-600">+$${profitAmount.toFixed(2)}</span>
+                </div>
+
+                <div class="border-t border-slate-200 my-2 pt-2 flex items-baseline justify-between">
+                  <span class="text-xs font-bold text-slate-800">Client Sell Quote:</span>
+                  <div class="text-right">
+                    <span class="text-2xl font-black text-brand-700 block">${rate.currency} $${sellPrice.toFixed(2)}</span>
+                    <span class="text-[10px] text-slate-400">All-in Freight Quote</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="space-y-2 mt-4">
+                <button onclick="openMarginModal('${rate.id}')" class="w-full py-2.5 bg-gradient-to-r from-brand-600 to-ocean-600 hover:from-brand-500 hover:to-ocean-500 text-white rounded-xl font-bold text-xs transition shadow-md shadow-brand-500/10 flex items-center justify-center space-x-2">
+                  <i class="fa-solid fa-sliders"></i>
+                  <span>Set Margin & Select Quote</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+        `;
+        cardContainer.innerHTML += cardHtml;
+
+        // --- 2. TABLE VIEW HTML ---
+        const tableRowHtml = `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3.5 px-4 font-semibold flex items-center space-x-2">
+              <img src="${rate.carrier_logo}" class="w-7 h-7 rounded object-cover border border-slate-200">
+              <div>
+                <span class="block text-slate-900">${rate.carrier_name}</span>
+                <span class="text-[10px] text-slate-400 font-mono">${rate.id}</span>
+              </div>
+            </td>
+            <td class="py-3.5 px-4 text-slate-600">${rate.equipment}</td>
+            <td class="py-3.5 px-4 font-bold text-slate-800">${rate.origin.split(' ')[0]} → ${rate.destination.split(' ')[0]}</td>
+            <td class="py-3.5 px-4 text-slate-600">${rate.transit_time}</td>
+            <td class="py-3.5 px-4 font-mono text-slate-600">$${rate.buy_price.toFixed(2)}</td>
+            <td class="py-3.5 px-4 font-mono font-bold text-slate-700">${currentMarginPercent}%</td>
+            <td class="py-3.5 px-4 font-mono font-bold text-emerald-600">+$${profitAmount.toFixed(2)}</td>
+            <td class="py-3.5 px-4 font-mono font-extrabold text-brand-700">$${sellPrice.toFixed(2)}</td>
+            <td class="py-3.5 px-4 text-right">
+              <button onclick="openMarginModal('${rate.id}')" class="bg-brand-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-brand-700 transition">
+                Adjust & Select
+              </button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += tableRowHtml;
+      });
+    }
+
+    function setModeFilter(mode) {
+      activeFilterMode = mode;
+      
+      const btnAll = document.getElementById('modeAllBtn');
+      const btnSeaFcl = document.getElementById('modeSeaFclBtn');
+      const btnSeaLcl = document.getElementById('modeSeaLclBtn');
+      const btnAir = document.getElementById('modeAirBtn');
+
+      const activeClass = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-xs transition flex items-center space-x-1.5";
+      const inactiveClass = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5";
+
+      btnAll.className = mode === 'ALL' ? activeClass : inactiveClass;
+      btnSeaFcl.className = mode === 'SEA_FCL' ? activeClass : inactiveClass;
+      btnSeaLcl.className = mode === 'SEA_LCL' ? activeClass : inactiveClass;
+      btnAir.className = mode === 'AIR' ? activeClass : inactiveClass;
+
+      renderRates();
+    }
+
+    function applyFilters() {
+      renderRates();
+    }
+
+    function updateMarginMarkup(val) {
+      currentMarginPercent = parseInt(val);
+      document.getElementById('marginValue').innerText = `${val}%`;
+      renderRates();
+    }
+
+    function switchView(view) {
+      currentView = view;
+      const cardContainer = document.getElementById('rateCardsContainer');
+      const tableContainer = document.getElementById('rateTableContainer');
+      const viewCardBtn = document.getElementById('viewCardBtn');
+      const viewTableBtn = document.getElementById('viewTableBtn');
+
+      if (view === 'card') {
+        cardContainer.classList.remove('hidden');
+        tableContainer.classList.add('hidden');
+        viewCardBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-800 shadow-xs transition flex items-center space-x-1.5";
+        viewTableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5";
+      } else {
+        cardContainer.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+        viewCardBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center space-x-1.5";
+        viewTableBtn.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-800 shadow-xs transition flex items-center space-x-1.5";
+      }
+    }
+
+    function openMarginModal(rateId) {
+      activeSelectedRateId = rateId;
+      const rate = masterRatesData.find(r => r.id === rateId);
+      if (!rate) return;
+
+      document.getElementById('modalCarrierTitle').innerText = `${rate.carrier_name} - Rate & Profit Studio`;
+      document.getElementById('modalSubTitle').innerText = `${rate.origin} → ${rate.destination} | ${rate.vessel_voyage}`;
+      document.getElementById('modalCarrierCode').innerText = rate.carrier_code;
+      document.getElementById('modalModeBadge').innerText = rate.mode.replace('_', ' ');
+      document.getElementById('modalMarginInput').value = currentMarginPercent;
+
+      recalculateModalTotals();
+      document.getElementById('marginModal').classList.remove('hidden');
+    }
+
+    function recalculateModalTotals() {
+      if (!activeSelectedRateId) return;
+      const rate = masterRatesData.find(r => r.id === activeSelectedRateId);
+      if (!rate) return;
+
+      const customMargin = parseFloat(document.getElementById('modalMarginInput').value) || 0;
+      const marginDecimal = customMargin / 100;
+
+      const rowsContainer = document.getElementById('modalChargeRows');
+      rowsContainer.innerHTML = '';
+
+      let totalBuy = 0;
+      let totalSell = 0;
+
+      rate.charges.forEach(ch => {
+        totalBuy += ch.amount;
+        const itemSell = ch.amount * (1 + marginDecimal);
+        const itemProfit = itemSell - ch.amount;
+        totalSell += itemSell;
+
+        rowsContainer.innerHTML += `
+          <tr class="hover:bg-slate-50">
+            <td class="p-2.5 font-bold text-slate-800">${ch.charge_name}</td>
+            <td class="p-2.5 text-slate-500">${ch.charge_type}</td>
+            <td class="p-2.5 text-slate-600 font-mono">${ch.basis}</td>
+            <td class="p-2.5 text-right font-mono text-slate-600">$${ch.amount.toFixed(2)}</td>
+            <td class="p-2.5 text-right font-mono font-bold text-emerald-600">+$${itemProfit.toFixed(2)}</td>
+            <td class="p-2.5 text-right font-mono font-bold text-slate-900">$${itemSell.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      const totalProfit = totalSell - totalBuy;
+      const grossYield = (totalProfit / totalSell) * 100;
+
+      document.getElementById('modalBuyTotal').innerText = `$${totalBuy.toFixed(2)}`;
+      document.getElementById('modalProfitAmount').innerText = `+$${totalProfit.toFixed(2)}`;
+      document.getElementById('modalSellTotal').innerText = `$${totalSell.toFixed(2)}`;
+      document.getElementById('modalYieldPercentage').innerText = `${grossYield.toFixed(2)}% Gross Margin Yield`;
+    }
+
+    function closeModal() {
+      document.getElementById('marginModal').classList.add('hidden');
+    }
+
+    function handleSortChange() {
+      const val = document.getElementById('sortSelect').value;
+      if (val === 'cheapest') {
+        masterRatesData.sort((a, b) => a.buy_price - b.buy_price);
+      } else if (val === 'fastest') {
+        masterRatesData.sort((a, b) => parseInt(a.transit_time) - parseInt(b.transit_time));
+      } else if (val === 'co2') {
+        masterRatesData.sort((a, b) => parseFloat(a.co2_emission) - parseFloat(b.co2_emission));
+      } else if (val === 'carrier') {
+        masterRatesData.sort((a, b) => a.carrier_name.localeCompare(b.carrier_name));
+      }
+      renderRates();
+    }
+
+    // Simulated Carrier Tariff API Sync
+    function triggerRateSync() {
+      const consoleEl = document.getElementById('syncConsole');
+      const logBox = document.getElementById('syncLogContainer');
+      const badge = document.getElementById('engineStatusBadge');
+
+      consoleEl.classList.remove('hidden');
+      logBox.innerHTML = '';
+
+      function addLog(msg, color = 'text-slate-400') {
+        const time = new Date().toLocaleTimeString();
+        logBox.innerHTML += `<p class="${color}">[${time}] ${msg}</p>`;
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+
+      addLog("🚀 Connecting to Xportplus Tariff Gateway...", "text-amber-300");
+
+      setTimeout(() => {
+        addLog("Synchronizing Air Cargo tariffs with Emirates & Qatar API...", "text-blue-400");
+      }, 700);
+
+      setTimeout(() => {
+        addLog("Fetching Ocean FCL / LCL matrix for Maersk, MSC, CMA CGM, Hapag-Lloyd...", "text-blue-400");
+      }, 1400);
+
+      setTimeout(() => {
+        addLog("✅ Tariffs updated! 6 verified rates synchronized across Air & Ocean routes.", "text-emerald-400 font-bold");
+        renderRates();
+      }, 2200);
+    }
+
+    function confirmBooking() {
+      if (!activeSelectedRateId) return;
+      const rate = masterRatesData.find(r => r.id === activeSelectedRateId);
+      const margin = document.getElementById('modalMarginInput').value;
+      const sellTotal = document.getElementById('modalSellTotal').innerText;
+      
+      closeModal();
+      
+      // Confirmation message box
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 z-50 flex items-center space-x-3 text-xs';
+      toast.innerHTML = `
+        <div class="bg-emerald-500 text-white p-2 rounded-xl font-bold"><i class="fa-solid fa-check"></i></div>
+        <div>
+          <strong class="block text-sm">Quote Proposal Generated!</strong>
+          <span>Rate ${rate.id} (${rate.carrier_name}) locked with ${margin}% margin. Client Total: ${sellTotal}</span>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // Initial render
+    window.onload = function() {
+      renderRates();
+    };
+  </script>
+</body>
+</html>

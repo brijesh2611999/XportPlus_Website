@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: xportplus-tracking-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        value: "postgresql://username:password@hostname:5432/dbname" # Set this in the Render Dashboard!
+      - key: ALLOWED_ORIGINS
+        value: "https://xport-plus.com,http://localhost:5173,https://your-frontend-app.onrender.com"
+      - key: HOST
+        value: "0.0.0.0"
