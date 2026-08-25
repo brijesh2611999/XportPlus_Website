@@ -70,7 +70,7 @@ async def track_shipment(req: TrackingRequest):
             "blNo": req.tracking_number
         }
         try:
-            kmtc_response = requests.post(kmtc_url, json=payload, headers=headers, timeout=15)
+            kmtc_response = requests.post(kmtc_url, json=payload, headers=headers, timeout=45)
             kmtc_response.raise_for_status()
             real_data = kmtc_response.json()
             return {
@@ -133,7 +133,7 @@ async def track_shipment(req: TrackingRequest):
                 "timestamp": int(time.time() * 1000)
             }
             
-            one_response = requests.post(one_url, json=payload, headers=headers, timeout=15)
+            one_response = requests.post(one_url, json=payload, headers=headers, timeout=45)
             if one_response.status_code == 400:
                 real_data = one_response.json()
                 return {
@@ -222,7 +222,7 @@ async def track_shipment(req: TrackingRequest):
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
             }
             
-            zim_response = requests.get(zim_url, headers=headers, timeout=15)
+            zim_response = requests.get(zim_url, headers=headers, timeout=45)
             zim_response.raise_for_status()
             real_data = zim_response.json()
             
@@ -315,7 +315,7 @@ async def track_shipment(req: TrackingRequest):
                 "trackingMode": "0"
             }
             
-            msc_response = requests.post(msc_url, headers=headers, json=payload, timeout=15)
+            msc_response = requests.post(msc_url, headers=headers, json=payload, timeout=45)
             msc_response.raise_for_status()
             real_data = msc_response.json()
             
@@ -375,7 +375,7 @@ async def track_shipment(req: TrackingRequest):
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
         }
         try:
-            ncl_response = requests.get(ncl_url, headers=headers, timeout=15)
+            ncl_response = requests.get(ncl_url, headers=headers, timeout=45)
             # NCL returns 404 for invalid bookings
             if ncl_response.status_code == 404:
                 return {
@@ -424,7 +424,7 @@ async def track_shipment(req: TrackingRequest):
             "X-Requested-With": "XMLHttpRequest"
         }
         try:
-            sm_response = requests.get(sm_url, params=params, headers=headers, timeout=15)
+            sm_response = requests.get(sm_url, params=params, headers=headers, timeout=45)
             sm_response.raise_for_status()
             real_data = sm_response.json()
             
@@ -474,7 +474,7 @@ async def track_shipment(req: TrackingRequest):
             "X-Requested-With": "XMLHttpRequest"
         }
         try:
-            cu_response = requests.get(cu_url, params=params, headers=headers, timeout=15)
+            cu_response = requests.get(cu_url, params=params, headers=headers, timeout=45)
             cu_response.raise_for_status()
             real_data = cu_response.json()
             
@@ -509,12 +509,12 @@ async def track_shipment(req: TrackingRequest):
         }
         try:
             # Check if container exists first (as per their frontend flow)
-            check_response = requests.get(sinokor_check_url, headers=headers, timeout=15)
+            check_response = requests.get(sinokor_check_url, headers=headers, timeout=45)
             check_response.raise_for_status()
             check_data = check_response.json()
             
             # Fetch actual tracking data
-            track_response = requests.get(sinokor_track_url, headers=headers, timeout=15)
+            track_response = requests.get(sinokor_track_url, headers=headers, timeout=45)
             track_response.raise_for_status()
             track_data = track_response.json()
             
@@ -554,7 +554,7 @@ async def track_shipment(req: TrackingRequest):
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
         }
         try:
-            arkas_response = requests.get(arkas_url, params=params, headers=headers, timeout=15)
+            arkas_response = requests.get(arkas_url, params=params, headers=headers, timeout=45)
             arkas_response.raise_for_status()
             real_data = arkas_response.json()
             
@@ -591,7 +591,7 @@ async def track_shipment(req: TrackingRequest):
             # Step 1: Hit homepage to get the CSRF token (ttr)
             session = requests.Session()
             session.headers.update(headers)
-            r_home = session.get(matson_home, timeout=10)
+            r_home = session.get(matson_home, timeout=30)
             r_home.raise_for_status()
             
             ttr = ""
@@ -614,7 +614,7 @@ async def track_shipment(req: TrackingRequest):
                 "referer": "https://www.matson.com/shipment-tracking.html",
                 "x-requested-with": "XMLHttpRequest"
             })
-            r_proxy = session.post(matson_proxy, data=payload, timeout=15)
+            r_proxy = session.post(matson_proxy, data=payload, timeout=45)
             r_proxy.raise_for_status()
             
             # Matson returns an empty array [] if not found
