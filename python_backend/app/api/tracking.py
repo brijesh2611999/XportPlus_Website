@@ -611,14 +611,15 @@ async def track_shipment(req: TrackingRequest):
 
             print(f"Fetching live Sinokor data for {req.tracking_number}")
             headers = {
-                "Accept": "application/json, text/plain, */*",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
             }
             
             # Use a session to persist ASP.NET cookies
             req_session = requests.Session()
             try:
-                req_session.get("https://ebiz.sinokor.co.kr/", headers=headers, timeout=10)
+                req_session.get("https://ebiz.sinokor.co.kr/Tracking", headers=headers, timeout=10)
             except Exception:
                 pass
             
