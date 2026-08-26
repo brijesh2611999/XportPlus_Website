@@ -9,11 +9,11 @@ def parse_sinokor_response(html_content: str) -> dict:
     
     parsed = {
         "status": "In Transit",
-        "latest_event_time": None,
-        "origin_city": None,
-        "destination_city": None,
+        "event_date_time": None,
+        "pol": None,
+        "pod": None,
         "vessel_name": None,
-        "voyage_number": None,
+        "voyage_no": None,
         "eta_final_delivery": None
     }
     
@@ -28,13 +28,13 @@ def parse_sinokor_response(html_content: str) -> dict:
             # e.g. MUMBAI BRIDGE / 2604E
             if " / " in vsl_text:
                 parsed["vessel_name"] = vsl_text.split(" / ")[0]
-                parsed["voyage_number"] = vsl_text.split(" / ")[1]
+                parsed["voyage_no"] = vsl_text.split(" / ")[1]
         
         col8s = first_leg.find_all('div', class_='col-sm-6')
         if len(col8s) >= 1:
             pol_b = col8s[0].find('b')
             if pol_b:
-                parsed["origin_city"] = pol_b.text.strip()
+                parsed["pol"] = pol_b.text.strip()
                 
         # Get last leg for destination
         last_leg = li_lefts[-1]
@@ -42,7 +42,7 @@ def parse_sinokor_response(html_content: str) -> dict:
         if len(col8s_last) >= 2:
             pod_b = col8s_last[1].find('b')
             if pod_b:
-                parsed["destination_city"] = pod_b.text.strip()
+                parsed["pod"] = pod_b.text.strip()
     
     # 2. Parse Events Table
     table = soup.find('table', {'id': 'tblResult'})
@@ -67,7 +67,7 @@ def parse_sinokor_response(html_content: str) -> dict:
                         parts = date_time_str.split(" ")
                         if len(parts) >= 3:
                             clean_dt = f"{parts[0]} {parts[2]}"
-                            parsed["latest_event_time"] = datetime.strptime(clean_dt, "%Y-%m-%d %H:%M")
+                            parsed["event_date_time"] = datetime.strptime(clean_dt, "%Y-%m-%d %H:%M")
                     except Exception:
                         pass
                         
