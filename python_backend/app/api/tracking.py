@@ -12,6 +12,7 @@ from app.parsers.zim import parse_zim_response
 from app.parsers.kmtc import parse_kmtc_response
 from app.parsers.msc import parse_msc_response
 from app.parsers.yangming import parse_yangming_response
+from app.parsers.sinokor import parse_sinokor_response
 from app.parsers.maersk import parse_maersk_response
 from datetime import datetime, timedelta
 
@@ -41,7 +42,8 @@ CARRIER_URLS = {
     "PIL": "https://api.pilship.com/tracking",
     "Wan Hai": "https://api.wanhai.com/tracking",
     "SITC": "https://api.sitc.com/tracking",
-    "KMTC": "https://api.kmtc.com/tracking"
+    "KMTC": "https://api.kmtc.com/tracking",
+    "SINOKOR": "https://ebiz.sinokor.co.kr/Tracking"
 }
 
 @router.post("/track")
@@ -581,46 +583,119 @@ async def track_shipment(req: TrackingRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to fetch from CU Lines: {str(e)}")
 
-    # Sinokor API Integration
-    elif req.carrier == "Sinokor":
-        sinokor_check_url = f"https://ebiz.sinokor.co.kr/Home/chkExistsCntr?cntrno={req.tracking_number}"
-        sinokor_track_url = f"https://ebiz.sinokor.co.kr/Tracking/GetBLList?cntrno={req.tracking_number}&year={datetime.now().year}"
-        headers = {
-            "Accept": "application/json, text/javascript, */*; q=0.01",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://ebiz.sinokor.co.kr/Tracking",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
-            "X-Requested-With": "XMLHttpRequest"
-        }
+    # Sinokor API Integration (Hybrid Cache & 2-Step)
+    elif req.carrier.upper() == "SINOKOR":
+        session = SessionLocal()
         try:
-            # Check if container exists first (as per their frontend flow)
-            check_response = requests.get(sinokor_check_url, headers=headers, timeout=45)
-            check_response.raise_for_status()
-            check_data = check_response.json()
+            # 1. Check DB first
+            db_record = session.query(TrackingResponse).filter(
+                TrackingResponse.tracking_number == req.tracking_number,
+                TrackingResponse.carrier == "SINOKOR"
+            ).first()
             
-            # Fetch actual tracking data
-            track_response = requests.get(sinokor_track_url, headers=headers, timeout=45)
-            track_response.raise_for_status()
-            track_data = track_response.json()
+            if db_record and db_record.last_updated_at:
+                if datetime.utcnow() - db_record.last_updated_at < timedelta(hours=12):
+                    print(f"Returning cached Sinokor data for {req.tracking_number}")
+                    return {
+                        "success": True,
+                        "carrier": req.carrier,
+                        "tracking_number": req.tracking_number,
+                        "data": db_record.raw_json,
+                        "normalized": {
+                            c.name: getattr(db_record, c.name).isoformat() if getattr(db_record, c.name) and isinstance(getattr(db_record, c.name), datetime) else getattr(db_record, c.name) 
+                            for c in TrackingResponse.__table__.columns if c.name not in ["id", "raw_json", "last_updated_at"]
+                        },
+                        "cached": True,
+                        "last_updated": db_record.last_updated_at.isoformat()
+                    }
+
+            print(f"Fetching live Sinokor data for {req.tracking_number}")
+            headers = {
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+            }
             
-            if not track_data:
+            bl_no = req.tracking_number
+            import re
+            # Check if it's a container number (4 letters + 7 digits)
+            if re.match(r'^[A-Z]{4}\d{7}$', req.tracking_number):
+                # We fetch the BL list first
+                print(f"Fetching BL for container: {req.tracking_number}")
+                bl_list_url = f"https://ebiz.sinokor.co.kr/Tracking/GetBLList?cntrno={req.tracking_number}&year={datetime.now().year}"
+                bl_res = requests.get(bl_list_url, headers=headers, timeout=45)
+                bl_res.raise_for_status()
+                bl_data = bl_res.json()
+                if not bl_data or len(bl_data) == 0:
+                    return {
+                        "success": False,
+                        "carrier": req.carrier,
+                        "tracking_number": req.tracking_number,
+                        "error": "No data found from corresponding website."
+                    }
+                # Using the first B/L number as per user requirement
+                bl_no = bl_data[0].get("BKNO")
+                print(f"Resolved to BL: {bl_no}")
+
+            # Fetch Full Tracking HTML
+            html_url = f"https://ebiz.sinokor.co.kr/Tracking?blno={bl_no}"
+            html_res = requests.get(html_url, headers=headers, timeout=45)
+            html_res.raise_for_status()
+            html_content = html_res.text
+            
+            # Sinokor returns success HTML even if not found, we check if the table exists
+            if 'id="tblResult"' not in html_content:
                 return {
                     "success": False,
                     "carrier": req.carrier,
                     "tracking_number": req.tracking_number,
-                    "data": track_data,
-                    "error": "Could not find booking or container in Sinokor"
+                    "error": "No data found from corresponding website."
                 }
                 
+            # Parse HTML
+            parsed_data = parse_sinokor_response(html_content)
+            
+            # For raw JSON, let's just store a tiny dict so we don't blow up the DB with HTML
+            raw_data = {"blno": bl_no, "html_scraped": True}
+
+            # Store in DB
+            if db_record:
+                db_record.raw_json = raw_data
+                db_record.last_updated_at = datetime.utcnow()
+                for k, v in parsed_data.items():
+                    setattr(db_record, k, v)
+            else:
+                new_record = TrackingResponse(
+                    tracking_number=req.tracking_number,
+                    carrier="SINOKOR",
+                    raw_json=raw_data,
+                    last_updated_at=datetime.utcnow(),
+                    **parsed_data
+                )
+                session.add(new_record)
+            
+            session.commit()
+            
             return {
                 "success": True,
                 "carrier": req.carrier,
                 "tracking_number": req.tracking_number,
-                "data": track_data,
-                "status_info": check_data
+                "data": raw_data,
+                "normalized": {
+                    k: (v.isoformat() if isinstance(v, datetime) else v) 
+                    for k, v in parsed_data.items()
+                },
+                "cached": False
             }
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to fetch from Sinokor: {str(e)}")
+            session.rollback()
+            return {
+                "success": False,
+                "carrier": req.carrier,
+                "tracking_number": req.tracking_number,
+                "error": f"No data found from corresponding website. ({str(e)})"
+            }
+        finally:
+            session.close()
 
     # Arkas Line API Integration
     elif req.carrier == "Arkas Line":
