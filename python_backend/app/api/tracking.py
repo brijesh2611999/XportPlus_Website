@@ -615,6 +615,13 @@ async def track_shipment(req: TrackingRequest):
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
             }
             
+            # Use a session to persist ASP.NET cookies
+            req_session = requests.Session()
+            try:
+                req_session.get("https://ebiz.sinokor.co.kr/", headers=headers, timeout=10)
+            except Exception:
+                pass
+            
             bl_no = req.tracking_number
             import re
             # Check if it's a container number (4 letters + 7 digits)
@@ -622,7 +629,15 @@ async def track_shipment(req: TrackingRequest):
                 # We fetch the BL list first
                 print(f"Fetching BL for container: {req.tracking_number}")
                 bl_list_url = f"https://ebiz.sinokor.co.kr/Tracking/GetBLList?cntrno={req.tracking_number}&year={datetime.now().year}"
-                bl_res = requests.get(bl_list_url, headers=headers, timeout=45)
+                
+                bl_headers = headers.copy()
+                bl_headers.update({
+                    "Accept": "application/json, text/javascript, */*; q=0.01",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Referer": "https://ebiz.sinokor.co.kr/Tracking"
+                })
+                
+                bl_res = req_session.get(bl_list_url, headers=bl_headers, timeout=45)
                 bl_res.raise_for_status()
                 bl_data = bl_res.json()
                 if not bl_data or len(bl_data) == 0:
@@ -638,7 +653,7 @@ async def track_shipment(req: TrackingRequest):
 
             # Fetch Full Tracking HTML
             html_url = f"https://ebiz.sinokor.co.kr/Tracking?blno={bl_no}"
-            html_res = requests.get(html_url, headers=headers, timeout=45)
+            html_res = req_session.get(html_url, headers=headers, timeout=45)
             html_res.raise_for_status()
             html_content = html_res.text
             
