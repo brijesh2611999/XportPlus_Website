@@ -14,7 +14,8 @@ def parse_sinokor_response(html_content: str) -> dict:
         "pod": None,
         "vessel_name": None,
         "voyage_no": None,
-        "eta_final_delivery": None
+        "eta_final_delivery": None,
+        "_events_json": []
     }
     
     # 1. Parse Routing details from Schedule Info list items (.form-both .liLeft)
@@ -70,6 +71,20 @@ def parse_sinokor_response(html_content: str) -> dict:
                             parsed["event_date_time"] = datetime.strptime(clean_dt, "%Y-%m-%d %H:%M")
                     except Exception:
                         pass
+            
+            # Extract all events for raw json
+            events_list = []
+            for row in rows:
+                cols = row.find_all('td')
+                if len(cols) >= 4:
+                    events_list.append({
+                        "event": cols[0].text.strip(),
+                        "container_vessel": cols[1].text.strip(),
+                        "location": cols[2].text.strip(),
+                        "date_time": cols[3].text.strip()
+                    })
+            parsed["_events_json"] = events_list
+            
                         
             # Try to find final ETA from Arrival events
             for row in reversed(rows):

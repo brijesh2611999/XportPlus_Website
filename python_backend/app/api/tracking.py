@@ -670,8 +670,11 @@ async def track_shipment(req: TrackingRequest):
             # Parse HTML
             parsed_data = parse_sinokor_response(html_content)
             
-            # For raw JSON, let's just store a tiny dict so we don't blow up the DB with HTML
-            raw_data = {"blno": bl_no, "html_scraped": True}
+            # Extract events for raw JSON view
+            events_json = parsed_data.pop("_events_json", [])
+            
+            # For raw JSON, let's include the extracted events list so the user can see it in the dev console
+            raw_data = {"blno": bl_no, "html_scraped": True, "events": events_json}
 
             # Store in DB
             if db_record:
