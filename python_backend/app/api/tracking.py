@@ -9,6 +9,7 @@ from app.scrapers.yangming import scrape_yangming
 from app.core.models import SessionLocal, TrackingResponse
 from app.parsers.one import parse_one_response
 from app.parsers.zim import parse_zim_response
+from app.parsers.kmtc import parse_kmtc_response
 from app.parsers.msc import parse_msc_response
 from app.parsers.yangming import parse_yangming_response
 from app.parsers.maersk import parse_maersk_response
@@ -50,37 +51,121 @@ async def track_shipment(req: TrackingRequest):
         
     print(f"Tracking requested for {req.carrier} - No. {req.tracking_number}")
 
-    # KMTC API Integration
+    # KMTC API Integration (Hybrid Cache)
     if req.carrier == "KMTC":
-        kmtc_url = "https://api.ekmtc.com/trans/trans/cargo-tracking/"
-        headers = {
-            "accept": "application/json, text/plain, */*",
-            "content-type": "application/json",
-            "origin": "https://www.ekmtc.com",
-            "referer": "https://www.ekmtc.com/",
-            "service-ctrcd": "US",
-            "service-lang": "ENG",
-            "service-path": "#/cargo-tracking",
-            "selected-profile": "{}",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
-        }
-        dtKnd = "BL" if len(req.tracking_number) > 11 else "CN" 
-        payload = {
-            "dtKnd": dtKnd,
-            "blNo": req.tracking_number
-        }
+        session = SessionLocal()
         try:
-            kmtc_response = requests.post(kmtc_url, json=payload, headers=headers, timeout=45)
-            kmtc_response.raise_for_status()
-            real_data = kmtc_response.json()
+            # 1. Check DB first
+            db_record = session.query(TrackingResponse).filter(
+                TrackingResponse.tracking_number == req.tracking_number,
+                TrackingResponse.carrier == "KMTC"
+            ).first()
+            
+            # If present and less than 12 hours old, return DB data
+            if db_record and db_record.last_updated_at:
+                if datetime.utcnow() - db_record.last_updated_at < timedelta(hours=12):
+                    print(f"Returning cached KMTC data for {req.tracking_number}")
+                    return {
+                        "success": True,
+                        "carrier": req.carrier,
+                        "tracking_number": req.tracking_number,
+                        "data": db_record.raw_json,
+                        "normalized": {
+                            c.name: getattr(db_record, c.name).isoformat() if getattr(db_record, c.name) and isinstance(getattr(db_record, c.name), datetime) else getattr(db_record, c.name) 
+                            for c in TrackingResponse.__table__.columns if c.name not in ["id", "raw_json", "last_updated_at"]
+                        },
+                        "cached": True,
+                        "last_updated": db_record.last_updated_at.isoformat()
+                    }
+
+            # 2. Not in DB or too old, fetch from backend API
+            print(f"Fetching live KMTC data for {req.tracking_number}")
+            kmtc_url = "https://api.ekmtc.com/trans/trans/cargo-tracking/"
+            headers = {
+                "accept": "application/json, text/plain, */*",
+                "content-type": "application/json",
+                "origin": "https://www.ekmtc.com",
+                "referer": "https://www.ekmtc.com/",
+                "service-ctrcd": "US",
+                "service-lang": "ENG",
+                "service-path": "#/cargo-tracking",
+                "selected-profile": "{}",
+                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
+            }
+            dtKnd = "BL" if len(req.tracking_number) > 11 else "CN" 
+            payload1 = {
+                "dtKnd": dtKnd,
+                "blNo": req.tracking_number
+            }
+            
+            # Step 1
+            api1_res = requests.post(kmtc_url, json=payload1, headers=headers, timeout=45)
+            api1_res.raise_for_status()
+            api1_data = api1_res.json()
+            
+            if not api1_data or not api1_data.get("cntrList"):
+                return {
+                    "success": False,
+                    "carrier": req.carrier,
+                    "tracking_number": req.tracking_number,
+                    "error": "No data found from corresponding website."
+                }
+                
+            bkgNo = api1_data["cntrList"][0].get("bkgNo")
+            
+            # Step 2
+            api2_data = {}
+            if bkgNo:
+                api2_url = f"https://api.ekmtc.com/trans/trans/cargo-tracking/{bkgNo}/close-info"
+                # API 2 is a GET request usually, but let's check user curl. User curl didn't specify POST/GET but had no payload. It's likely a GET.
+                api2_res = requests.get(api2_url, headers=headers, timeout=45)
+                if api2_res.status_code == 200:
+                    api2_data = api2_res.json()
+            
+            real_data = {"api1": api1_data, "api2": api2_data}
+            
+            # 3. Parse KMTC Specific Fields
+            parsed_data = parse_kmtc_response(api1_data, api2_data)
+            
+            # 4. Store/Update in DB
+            if db_record:
+                db_record.raw_json = real_data
+                db_record.last_updated_at = datetime.utcnow()
+                for k, v in parsed_data.items():
+                    setattr(db_record, k, v)
+            else:
+                new_record = TrackingResponse(
+                    tracking_number=req.tracking_number,
+                    carrier="KMTC",
+                    raw_json=real_data,
+                    last_updated_at=datetime.utcnow(),
+                    **parsed_data
+                )
+                session.add(new_record)
+            
+            session.commit()
+            
             return {
                 "success": True,
                 "carrier": req.carrier,
                 "tracking_number": req.tracking_number,
-                "data": real_data
+                "data": real_data,
+                "normalized": {
+                    k: (v.isoformat() if isinstance(v, datetime) else v) 
+                    for k, v in parsed_data.items()
+                },
+                "cached": False
             }
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to fetch from KMTC: {str(e)}")
+            session.rollback()
+            return {
+                "success": False,
+                "carrier": req.carrier,
+                "tracking_number": req.tracking_number,
+                "error": f"No data found from corresponding website. (Internal Error: {str(e)})"
+            }
+        finally:
+            session.close()
 
     # ONE API Integration (Hybrid Cache)
     elif req.carrier == "ONE":
