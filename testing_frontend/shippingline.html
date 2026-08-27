@@ -121,7 +121,7 @@
         <!-- Tracking Form -->
         <div class="glass-panel rounded-2xl shadow-xl p-8 mb-8">
             <form id="tracking-form" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                     <!-- Carrier Selection -->
                     <div class="col-span-1">
@@ -152,25 +152,37 @@
                                 <option value="Wan Hai">Wan Hai</option>
                                 <option value="SITC">SITC</option>
                                 <option value="KMTC">KMTC</option>
-                                <option value="SINOKOR">Sinokor</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Tracking Number -->
+                    <!-- B/L Number -->
                     <div class="col-span-1">
-                        <label for="trackingNumber"
-                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Tracking
-                            Number</label>
+                        <label for="blNumber"
+                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">B/L Number</label>
                         <div class="relative">
                             <div
                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                <i class="fa-solid fa-barcode"></i>
+                                <i class="fa-solid fa-file-invoice"></i>
                             </div>
-                            <input type="text" id="trackingNumber" name="trackingNumber"
-                                placeholder="Container / BL / Booking No."
-                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-shadow"
-                                required>
+                            <input type="text" id="blNumber" name="blNumber"
+                                placeholder="B/L Number"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-shadow">
+                        </div>
+                    </div>
+
+                    <!-- Container Number -->
+                    <div class="col-span-1">
+                        <label for="containerNumber"
+                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Container Number</label>
+                        <div class="relative">
+                            <div
+                                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fa-solid fa-box"></i>
+                            </div>
+                            <input type="text" id="containerNumber" name="containerNumber"
+                                placeholder="Container Number"
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-shadow">
                         </div>
                     </div>
                 </div>
@@ -346,11 +358,23 @@
             e.preventDefault();
 
             const carrier = document.getElementById('carrier').value;
-            const trackingNumber = document.getElementById('trackingNumber').value.trim();
+            const blNumber = document.getElementById('blNumber').value.trim();
+            const containerNumber = document.getElementById('containerNumber').value.trim();
             const trackBtn = document.getElementById('track-btn');
+            
+            let trackingNumber = blNumber;
+            if (!trackingNumber) {
+                trackingNumber = containerNumber;
+            }
 
             const errorAlert = document.getElementById('error-alert');
             const errorMessage = document.getElementById('error-message');
+            
+            if (!trackingNumber) {
+                errorMessage.textContent = "Please enter either a B/L Number or a Container Number.";
+                errorAlert.classList.remove('hidden');
+                return;
+            }
             const loadingState = document.getElementById('loading-state');
             const loadingCarrierName = document.getElementById('loading-carrier-name');
             const resultsContainer = document.getElementById('results-container');
