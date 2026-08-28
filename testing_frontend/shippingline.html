@@ -152,6 +152,7 @@
                                 <option value="Wan Hai">Wan Hai</option>
                                 <option value="SITC">SITC</option>
                                 <option value="KMTC">KMTC</option>
+                                <option value="Textainer">Textainer</option>
                             </select>
                         </div>
                     </div>
@@ -165,8 +166,7 @@
                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                 <i class="fa-solid fa-file-invoice"></i>
                             </div>
-                            <input type="text" id="blNumber" name="blNumber"
-                                placeholder="B/L Number"
+                            <input type="text" id="blNumber" name="blNumber" placeholder="B/L Number"
                                 class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm transition-shadow">
                         </div>
                     </div>
@@ -174,7 +174,8 @@
                     <!-- Container Number -->
                     <div class="col-span-1">
                         <label for="containerNumber"
-                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Container Number</label>
+                            class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Container
+                            Number</label>
                         <div class="relative">
                             <div
                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
@@ -360,21 +361,17 @@
             const carrier = document.getElementById('carrier').value;
             const blNumber = document.getElementById('blNumber').value.trim();
             const containerNumber = document.getElementById('containerNumber').value.trim();
-            const trackBtn = document.getElementById('track-btn');
-            
-            let trackingNumber = blNumber;
+            const trackingNumber = blNumber || containerNumber;
+
             if (!trackingNumber) {
-                trackingNumber = containerNumber;
+                alert("Please enter either a B/L Number or a Container Number.");
+                return;
             }
+
+            const trackBtn = document.getElementById('track-btn');
 
             const errorAlert = document.getElementById('error-alert');
             const errorMessage = document.getElementById('error-message');
-            
-            if (!trackingNumber) {
-                errorMessage.textContent = "Please enter either a B/L Number or a Container Number.";
-                errorAlert.classList.remove('hidden');
-                return;
-            }
             const loadingState = document.getElementById('loading-state');
             const loadingCarrierName = document.getElementById('loading-carrier-name');
             const resultsContainer = document.getElementById('results-container');
@@ -394,7 +391,7 @@
             try {
                 // Call Python Backend Endpoint
                 const response = await fetch('https://xportplus-website.onrender.com/tracking/track', {
-                // const response = await fetch('http://localhost:8000/tracking/track', {
+                    // const response = await fetch('http://localhost:8000/tracking/track', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

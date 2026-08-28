@@ -33,7 +33,15 @@ class MaerskScraper:
         to avoid Akamai Bot Manager blocking python requests.
         """
         operator = "MAEU" # For MAERSK
-        url = f"https://api.maersk.com/synergy/tracking/{tracking_number}?operator={operator}"
+        
+        # Normalize tracking number for Maersk API
+        # If the user passes a 13-char string like MAEU272837964 (4 letters + 9 digits), 
+        # we should extract the 9-digit B/L.
+        cleaned_number = tracking_number.strip().upper()
+        if len(cleaned_number) == 13 and re.match(r'^[A-Z]{4}\d{9}$', cleaned_number):
+            cleaned_number = cleaned_number[4:]
+            
+        url = f"https://api.maersk.com/synergy/tracking/{cleaned_number}?operator={operator}"
         
         curl_command = ["curl", "--url", url, "-s"] + self.headers
         

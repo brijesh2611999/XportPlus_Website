@@ -104,12 +104,23 @@ def scrape_maersk(tracking_number):
         page = ChromiumPage(co)
         try:
             import time
+            import re
+            
+            # Normalize tracking number for Maersk API
+            # Maersk API requires either 11 chars (4 letters + 7 digits) for containers
+            # or 9 chars for B/L numbers. 
+            # If the user passes a 13-char string like MAEU272837964 (4 letters + 9 digits), 
+            # we should extract the 9-digit B/L.
+            cleaned_number = tracking_number.strip().upper()
+            if len(cleaned_number) == 13 and re.match(r'^[A-Z]{4}\d{9}$', cleaned_number):
+                cleaned_number = cleaned_number[4:]
+                
             # Go to the main tracking page first to solve Akamai
             page.get("https://www.maersk.com/tracking/")
             time.sleep(3)
             
             # Now that Akamai cookies are set in the browser, we can directly fetch the JSON API using the browser's context!
-            api_url = f"https://api.maersk.com/synergy/tracking/{tracking_number}?operator=MAEU"
+            api_url = f"https://api.maersk.com/synergy/tracking/{cleaned_number}?operator=MAEU"
             
             # Use page.get() to navigate to the JSON endpoint
             page.get(api_url)
