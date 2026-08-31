@@ -54,6 +54,12 @@ def _scrape_cma_family(tracking_number, url, name):
     with scraper_lock:
         co = ChromiumOptions()
         co.headless(False) # Temporarily false for local testing
+        import sys
+        if sys.platform == "linux":
+            co.set_browser_path('/usr/bin/google-chrome')
+            co.set_argument('--no-sandbox')
+            co.set_argument('--disable-dev-shm-usage')
+            co.headless(True) # Always headless on linux/Render
         # Reuse user data to keep DataDome solved cookies
         co.set_user_data_path('./drission_user_data')
         co.auto_port()
@@ -234,6 +240,11 @@ def scrape_pil(tracking_number):
     with scraper_lock:
         co = ChromiumOptions()
         co.headless(True)
+        import sys
+        if sys.platform == "linux":
+            co.set_browser_path('/usr/bin/google-chrome')
+            co.set_argument('--no-sandbox')
+            co.set_argument('--disable-dev-shm-usage')
         co.set_user_data_path('./drission_user_data')
         co.auto_port()
         

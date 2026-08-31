@@ -29,33 +29,35 @@ class MaerskScraper:
 
     def track(self, tracking_number: str) -> dict:
         """
-        Track a container or B/L using the Maersk API via curl subprocess
-        to avoid Akamai Bot Manager blocking python requests.
+        Track a container or B/L using the Maersk API via curl_cffi
+        to spoof TLS and bypass Akamai Bot Manager.
         """
         operator = "MAEU" # For MAERSK
         
-        # Normalize tracking number for Maersk API
-        # If the user passes a 13-char string like MAEU272837964 (4 letters + 9 digits), 
-        # we should extract the 9-digit B/L.
         cleaned_number = tracking_number.strip().upper()
         if len(cleaned_number) == 13 and re.match(r'^[A-Z]{4}\d{9}$', cleaned_number):
             cleaned_number = cleaned_number[4:]
             
         url = f"https://api.maersk.com/synergy/tracking/{cleaned_number}?operator={operator}"
         
-        curl_command = ["curl", "--url", url, "-s"] + self.headers
+        headers_dict = {
+            "accept": "application/json",
+            "accept-language": "en-US,en;q=0.9,hi;q=0.8",
+            "dnt": "1",
+            "origin": "https://www.maersk.com",
+            "referer": "https://www.maersk.com/",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
         
         try:
-            logger.info(f"Executing curl command for Maersk tracking: {tracking_number}")
-            result = subprocess.run(curl_command, capture_output=True, text=True, timeout=30)
+            logger.info(f"Executing curl_cffi for Maersk tracking: {tracking_number}")
+            from curl_cffi import requests as cffi_requests
             
-            if result.returncode != 0:
-                logger.error(f"Curl command failed with code {result.returncode}")
-                return {"error": "Failed to fetch data from Maersk API", "details": result.stderr}
-                
-            response_text = result.stdout.strip()
+            response = cffi_requests.get(url, headers=headers_dict, impersonate="chrome120", timeout=30)
+            response.raise_for_status()
             
-            # Check if it was blocked by Akamai
+            response_text = response.text
+            
             if "<TITLE>Access Denied</TITLE>" in response_text or "Access Denied" in response_text:
                 return {"error": "Request blocked by Akamai Bot Manager"}
                 
@@ -69,9 +71,7 @@ class MaerskScraper:
                 logger.error(f"Failed to parse Maersk response as JSON: {response_text[:200]}")
                 return {"error": "Invalid JSON response from Maersk API"}
                 
-        except subprocess.TimeoutExpired:
-            return {"error": "Request to Maersk API timed out"}
         except Exception as e:
-            logger.error(f"Error executing curl for Maersk: {e}")
+            logger.error(f"Error executing curl_cffi for Maersk: {e}")
             return {"error": str(e)}
 

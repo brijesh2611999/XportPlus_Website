@@ -5,8 +5,12 @@ FROM mcr.microsoft.com/playwright:v1.44.0-jammy
 # Set working directory
 WORKDIR /app
 
-# Install Python 3.10 and pip (Jammy comes with Python 3.10)
-RUN apt-get update && apt-get install -y python3 python3-pip python3-venv \
+# Install Python 3.10, pip, and Google Chrome for DrissionPage
+RUN apt-get update && apt-get install -y wget gnupg2 apt-transport-https ca-certificates \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y python3 python3-pip python3-venv google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
 # Create and activate a virtual environment
