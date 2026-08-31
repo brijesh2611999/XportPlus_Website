@@ -310,7 +310,9 @@ async def track_shipment(req: TrackingRequest):
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36"
             }
             
-            zim_response = requests.get(zim_url, headers=headers, timeout=45)
+            # Use curl_cffi to spoof TLS fingerprint and bypass Akamai
+            from curl_cffi import requests as cffi_requests
+            zim_response = cffi_requests.get(zim_url, headers=headers, impersonate="chrome120", timeout=45)
             zim_response.raise_for_status()
             real_data = zim_response.json()
             

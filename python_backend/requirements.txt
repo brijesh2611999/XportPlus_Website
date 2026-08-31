@@ -11,3 +11,4 @@ gunicorn==22.0.0
 beautifulsoup4==4.12.3
 SQLAlchemy==2.0.31
 alembic==1.13.2
+curl_cffi==0.7.4
