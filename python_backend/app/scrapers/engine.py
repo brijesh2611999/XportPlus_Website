@@ -59,6 +59,9 @@ def _scrape_cma_family(tracking_number, url, name):
             co.set_browser_path('/usr/bin/google-chrome')
             co.set_argument('--no-sandbox')
             co.set_argument('--disable-dev-shm-usage')
+            co.set_argument('--disable-gpu')
+            co.set_argument('--single-process')
+            co.set_argument('--no-zygote')
             co.headless(True) # Always headless on linux/Render
         # Reuse user data to keep DataDome solved cookies
         co.set_user_data_path('./drission_user_data')
@@ -245,6 +248,9 @@ def scrape_pil(tracking_number):
             co.set_browser_path('/usr/bin/google-chrome')
             co.set_argument('--no-sandbox')
             co.set_argument('--disable-dev-shm-usage')
+            co.set_argument('--disable-gpu')
+            co.set_argument('--single-process')
+            co.set_argument('--no-zygote')
         co.set_user_data_path('./drission_user_data')
         co.auto_port()
         

@@ -53,7 +53,19 @@ class MaerskScraper:
             logger.info(f"Executing curl_cffi for Maersk tracking: {tracking_number}")
             from curl_cffi import requests as cffi_requests
             
-            response = cffi_requests.get(url, headers=headers_dict, impersonate="chrome120", timeout=30)
+            import os
+            proxies = None
+            proxy_url = os.getenv("RESIDENTIAL_PROXY")
+            if proxy_url:
+                proxies = {"http": proxy_url, "https": proxy_url}
+            
+            response = cffi_requests.get(
+                url, 
+                headers=headers_dict, 
+                impersonate="chrome120", 
+                proxies=proxies,
+                timeout=30
+            )
             response.raise_for_status()
             
             response_text = response.text
