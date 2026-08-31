@@ -49,23 +49,27 @@ def scrape_sitc(tracking_number):
     }
 
 
-def scrape_cma(tracking_number):
-    """Scrape CMA CGM using DrissionPage (Bypasses DataDome and CSRF)"""
+def _scrape_cma_family(tracking_number, url, name):
+    """Scrape CMA CGM family using DrissionPage (Bypasses DataDome and CSRF)"""
     with scraper_lock:
         co = ChromiumOptions()
-        co.headless(True)
+        co.headless(False) # Temporarily false for local testing
         # Reuse user data to keep DataDome solved cookies
         co.set_user_data_path('./drission_user_data')
         co.auto_port()
         
+        import os
+        proxy = os.getenv("RESIDENTIAL_PROXY")
+        if proxy:
+            co.set_proxy(proxy)
+            
         page = ChromiumPage(co)
         try:
-            url = "https://www.cma-cgm.com/ebusiness/tracking/search"
             page.get(url)
             
-            search_input = page.ele('@name=SearchViewModel.Reference', timeout=15)
+            search_input = page.ele('@name=SearchViewModel.Reference', timeout=15) or page.ele('#Reference', timeout=15)
             if not search_input:
-                return {"error": "Failed to load CMA Tracking Page. DataDome might be blocking the headless browser."}
+                return {"error": f"Failed to load {name} Tracking Page. DataDome might be blocking the headless browser."}
                 
             search_input.input(tracking_number)
             
@@ -73,25 +77,39 @@ def scrape_cma(tracking_number):
             if submit_btn:
                 submit_btn.click()
             else:
-                return {"error": "Could not find submit button on CMA."}
+                return {"error": f"Could not find submit button on {name}."}
             
             # Wait for the results to load (wait for url to change or DOM to update)
+            import time
             time.sleep(3) # Give it a few seconds to process the POST request
             
-            # Extract tracking results
-            # The exact CSS selector might need tuning depending on CMA's actual results page DOM
+            from app.parsers.cma import parse_cma_html
+            parsed_data = parse_cma_html(page.html)
+            
+            if "error" not in parsed_data:
+                return {"normalized": parsed_data, "note": f"Scraped and parsed via DrissionPage ({name})"}
+            
+            # Fallback to raw text if parser fails
             result_container = page.ele('css:.section-tracking', timeout=10) or page.ele('css:main', timeout=10)
             
             if result_container:
-                # We return a preview of the text for the frontend to render
                 return {
                     "raw_scraped_text": result_container.text[:1000], 
-                    "note": "Scraped via DrissionPage"
+                    "note": f"Scraped via DrissionPage ({name}) but parser failed: " + parsed_data.get("error", "")
                 }
             else:
-                return {"error": "No tracking results found in DOM after submission."}
+                return {"error": f"No tracking results found in DOM after submission on {name}."}
         finally:
             page.quit()
+
+def scrape_cma(tracking_number):
+    return _scrape_cma_family(tracking_number, "https://www.cma-cgm.com/ebusiness/tracking/search", "CMA CGM")
+
+def scrape_anl(tracking_number):
+    return _scrape_cma_family(tracking_number, "https://www.anl.com.au/ebusiness/tracking/search", "ANL")
+
+def scrape_cnc(tracking_number):
+    return _scrape_cma_family(tracking_number, "https://www.cnc-line.com/ebusiness/tracking/search", "CNC Line")
 
 def scrape_maersk(tracking_number):
     """Scrape Maersk using DrissionPage (Bypasses Akamai)"""
@@ -193,35 +211,22 @@ def scrape_evergreen(tracking_number):
     # We will just default to BL if it's alphanumeric, or try CNTR if it looks like one.
     tracking_type = "CNTR" if len(tracking_number) == 11 and tracking_number[:4].isalpha() else "BL"
     
-    # Form data from the user's curl
-    raw_payload = f"BL={tracking_number if tracking_type == 'BL' else ''}&CNTR={tracking_number if tracking_type == 'CNTR' else ''}&bkno={tracking_number if tracking_type == 'BKNO' else ''}&TYPE={tracking_type}&NO=&NO=&NO=&NO=&NO=&SEL=s_{tracking_type.lower()}&NO={tracking_number}"
+    # Evergreen expects the parameters in the URL for the POST request, not the body
+    if tracking_type == "CNTR":
+        url = f"https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=CNTR&CNTR={tracking_number}"
+    else:
+        url = f"https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=BL&BL={tracking_number}"
     
-    response = requests.post(url, data=raw_payload, headers=headers, timeout=15)
+    response = requests.post(url, headers=headers, timeout=15)
     response.raise_for_status()
     
     soup = BeautifulSoup(response.text, 'html.parser')
     
-    # Just extract all tables for now
-    tables = soup.find_all('table')
-    if not tables:
-        # Check if there is an error message
-        error_msg = soup.find(class_='errormsg') or soup.find('font', color='red')
-        if error_msg:
-            return {"error": error_msg.text.strip()}
-        import re
-        return {"raw_scraped_text": re.sub(r'\n+', '\n', soup.text.strip()[:1000]), "note": "No tables found on Evergreen"}
-        
-    data = []
-    for table in tables:
-        rows = table.find_all('tr')
-        for row in rows:
-            cols = [col.text.strip() for col in row.find_all(['td', 'th']) if col.text.strip()]
-            if cols:
-                data.append(" | ".join(cols))
-                
+    # Return the raw_html so the parser can extract data properly. 
+    # (The raw_html is deleted in tracking.py before sending the network response)
     return {
-        "raw_scraped_text": "\n".join(data[:50]),  # Limit to avoid massive payloads
-        "note": "Scraped via BeautifulSoup"
+        "raw_html": response.text,
+        "note": "Scraped via Requests"
     }
 
 def scrape_pil(tracking_number):
@@ -309,83 +314,3 @@ def scrape_seaboard(tracking_number):
     except Exception as e:
         return {"error": str(e)}
 
-def scrape_anl(tracking_number):
-    """Scrape ANL (CMA CGM subsidiary) using DrissionPage (Bypasses DataDome and CSRF)"""
-    with scraper_lock:
-        co = ChromiumOptions()
-        co.headless(True)
-        # Reuse user data to keep DataDome solved cookies
-        co.set_user_data_path('./drission_user_data')
-        co.auto_port()
-        
-        page = ChromiumPage(co)
-        try:
-            import time
-            url = "https://www.anl.com.au/ebusiness/tracking/search"
-            page.get(url)
-            
-            search_input = page.ele('@name=SearchViewModel.Reference', timeout=15)
-            if not search_input:
-                return {"error": "Failed to load ANL Tracking Page. DataDome might be blocking the headless browser."}
-                
-            search_input.input(tracking_number)
-            
-            submit_btn = page.ele('@type=submit', timeout=5)
-            if submit_btn:
-                submit_btn.click()
-            else:
-                return {"error": "Could not find submit button on ANL."}
-            
-            time.sleep(3) 
-            
-            result_container = page.ele('css:.section-tracking', timeout=10) or page.ele('css:main', timeout=10)
-            
-            if result_container:
-                return {
-                    "raw_scraped_text": result_container.text[:1000], 
-                    "note": "Scraped via DrissionPage"
-                }
-            else:
-                return {"error": "No tracking results found in DOM after submission."}
-        finally:
-            page.quit()
-
-def scrape_cnc(tracking_number):
-    """Scrape CNC Line (CMA CGM subsidiary) using DrissionPage (Bypasses DataDome and CSRF)"""
-    with scraper_lock:
-        co = ChromiumOptions()
-        co.headless(True)
-        co.set_user_data_path('./drission_user_data')
-        co.auto_port()
-        
-        page = ChromiumPage(co)
-        try:
-            import time
-            url = "https://www.cnc-line.com/ebusiness/tracking/search"
-            page.get(url)
-            
-            search_input = page.ele('@name=SearchViewModel.Reference', timeout=15)
-            if not search_input:
-                return {"error": "Failed to load CNC Tracking Page. DataDome might be blocking the headless browser."}
-                
-            search_input.input(tracking_number)
-            
-            submit_btn = page.ele('@type=submit', timeout=5)
-            if submit_btn:
-                submit_btn.click()
-            else:
-                return {"error": "Could not find submit button on CNC."}
-            
-            time.sleep(3) 
-            
-            result_container = page.ele('css:.section-tracking', timeout=10) or page.ele('css:main', timeout=10)
-            
-            if result_container:
-                return {
-                    "raw_scraped_text": result_container.text[:1000], 
-                    "note": "Scraped via DrissionPage"
-                }
-            else:
-                return {"error": "No tracking results found in DOM after submission."}
-        finally:
-            page.quit()

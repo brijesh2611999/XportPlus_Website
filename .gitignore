@@ -8,3 +8,39 @@ test_logic3.js
 test_script.js
 Xp website with icegate tracking.html
 xportplus_react/
+
+# Python Virtual Environments & Secrets
+python_backend/venv/
+python_backend/env/
+python_backend/.env
+.env
+
+# Python Caches
+python_backend/__pycache__/
+python_backend/**/*.pyc
+*.pyc
+
+# Database files
+python_backend/data/*.db
+python_backend/data/*.sqlite
+
+# Browser Profiles (DataDome bypass storage)
+python_backend/drission_user_data/
+python_backend/msc_drission_user_data/
+
+# Scratch, debug, temp files, and test outputs
+python_backend/scratch/
+python_backend/scratch_*.py
+python_backend/temp*.txt
+python_backend/*_data.txt
+python_backend/*_response.txt
+python_backend/*_response.html
+python_backend/*_result.html
+python_backend/*_test.html
+python_backend/*.png
+python_backend/*.json
+python_backend/test_*.py
+python_backend/sitc.html
+
+# IDE configs
+.cora/

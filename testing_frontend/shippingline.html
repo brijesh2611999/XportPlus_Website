@@ -140,6 +140,8 @@
                                 <option value="Maersk">Maersk</option>
                                 <option value="MSC">MSC</option>
                                 <option value="CMA CGM">CMA CGM</option>
+                                <option value="ANL">ANL</option>
+                                <option value="CNC">CNC</option>
                                 <option value="Hapag-Lloyd">Hapag-Lloyd</option>
                                 <option value="ONE">ONE</option>
                                 <option value="COSCO">COSCO</option>
@@ -422,16 +424,16 @@
                 document.getElementById('res-status').textContent = norm.status || "In Transit";
                 document.getElementById('res-latest-time').textContent = norm.latest_event_time ? new Date(norm.latest_event_time).toLocaleString() : "Time unavailable";
 
-                document.getElementById('res-origin').textContent = norm.origin_city || "Unknown";
-                document.getElementById('res-dest').textContent = norm.destination_city || "Unknown";
+                document.getElementById('res-origin').textContent = norm.origin_city || norm.pol || "Unknown";
+                document.getElementById('res-dest').textContent = norm.destination_city || norm.pod || "Unknown";
 
                 document.getElementById('res-vessel').textContent = norm.vessel_name || "Unassigned";
-                document.getElementById('res-voyage').textContent = norm.voyage_number || "-";
+                document.getElementById('res-voyage').textContent = norm.voyage_number || norm.voyage_no || "-";
 
                 document.getElementById('res-eta').textContent = norm.eta_final_delivery ? new Date(norm.eta_final_delivery).toLocaleDateString() : "TBD";
 
                 // Display the raw JSON data in the collapsible developer view
-                document.getElementById('res-json').textContent = JSON.stringify(result.data, null, 4);
+                document.getElementById('res-json').textContent = JSON.stringify(result.normalized, null, 4);
 
                 // Hide loading, show results with animation
                 loadingState.classList.add('hidden');

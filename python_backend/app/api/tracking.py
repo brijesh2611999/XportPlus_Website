@@ -13,6 +13,7 @@ from app.parsers.kmtc import parse_kmtc_response
 from app.parsers.msc import parse_msc_response
 from app.parsers.yangming import parse_yangming_response
 from app.parsers.maersk import parse_maersk_response
+from app.parsers.evergreen import parse_evergreen_response
 from datetime import datetime, timedelta
 
 router = APIRouter()
@@ -27,6 +28,8 @@ CARRIER_URLS = {
     "Maersk": "https://api.maersk.com/track/v1/shipments", # Fictional generic endpoint for demo
     "MSC": "https://api.msc.com/tracking",
     "CMA CGM": "https://api.cma-cgm.com/tracking",
+    "ANL": "https://api.anl.com.au/tracking",
+    "CNC": "https://api.cnc-line.com/tracking",
     "Hapag-Lloyd": "https://api.hapag-lloyd.com/tracking",
     "ONE": "https://api.one-line.com/tracking",
     "COSCO": "https://api.coscoshipping.com/tracking",
@@ -735,20 +738,7 @@ async def track_shipment(req: TrackingRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to scrape SITC: {str(e)}")
 
-    # CMA CGM Headless Scraper Integration
-    elif req.carrier == "CMA CGM":
-        try:
-            real_data = scrape_cma(req.tracking_number)
-            if "error" in real_data:
-                raise HTTPException(status_code=500, detail=real_data["error"])
-            return {
-                "success": True,
-                "carrier": req.carrier,
-                "tracking_number": req.tracking_number,
-                "data": real_data
-            }
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to scrape CMA CGM: {str(e)}")
+
 
     # ANL Headless Scraper Integration (CMA CGM subsidiary)
     elif req.carrier == "ANL":
@@ -1026,18 +1016,76 @@ async def track_shipment(req: TrackingRequest):
 
     # Evergreen HTML Scraper Integration
     elif req.carrier == "Evergreen":
+        session = SessionLocal()
         try:
+            # 1. Check DB first
+            db_record = session.query(TrackingResponse).filter(
+                TrackingResponse.tracking_number == req.tracking_number,
+                TrackingResponse.carrier == "Evergreen"
+            ).first()
+            
+            # If present and less than 12 hours old, return DB data
+            if db_record and db_record.last_updated_at:
+                if datetime.utcnow() - db_record.last_updated_at < timedelta(hours=12):
+                    print(f"Returning cached Evergreen data for {req.tracking_number}")
+                    return {
+                        "success": True,
+                        "carrier": req.carrier,
+                        "tracking_number": req.tracking_number,
+                        "data": db_record.raw_json,
+                        "normalized": {
+                            c.name: getattr(db_record, c.name).isoformat() if getattr(db_record, c.name) and isinstance(getattr(db_record, c.name), datetime) else getattr(db_record, c.name) 
+                            for c in TrackingResponse.__table__.columns if c.name not in ["id", "raw_json", "last_updated_at"]
+                        },
+                        "cached": True,
+                        "last_updated": db_record.last_updated_at.isoformat()
+                    }
+
+            # 2. Not in DB or too old, fetch from backend API
             real_data = scrape_evergreen(req.tracking_number)
             if "error" in real_data:
                 raise HTTPException(status_code=500, detail=real_data["error"])
+            parsed_data = parse_evergreen_response(real_data)
+            
+            # Remove raw_html from the response to prevent a massive payload from crashing the DB/browser
+            if "raw_html" in real_data:
+                del real_data["raw_html"]
+                
+            # 3. Save to DB
+            if db_record:
+                db_record.raw_json = real_data
+                db_record.last_updated_at = datetime.utcnow()
+                for k, v in parsed_data.items():
+                    if hasattr(db_record, k):
+                        setattr(db_record, k, v)
+            else:
+                valid_keys = [c.name for c in TrackingResponse.__table__.columns]
+                filtered_normalized = {k: v for k, v in parsed_data.items() if k in valid_keys}
+                
+                new_record = TrackingResponse(
+                    tracking_number=req.tracking_number,
+                    carrier="Evergreen",
+                    raw_json=real_data,
+                    last_updated_at=datetime.utcnow(),
+                    **filtered_normalized
+                )
+                session.add(new_record)
+            
+            session.commit()
+            
             return {
                 "success": True,
                 "carrier": req.carrier,
                 "tracking_number": req.tracking_number,
-                "data": real_data
+                "data": real_data,
+                "normalized": parsed_data,
+                "cached": False
             }
         except Exception as e:
+            session.rollback()
             raise HTTPException(status_code=500, detail=f"Failed to scrape Evergreen: {str(e)}")
+        finally:
+            session.close()
 
     # PIL Headless Scraper Integration
     elif req.carrier == "PIL":
@@ -1069,9 +1117,87 @@ async def track_shipment(req: TrackingRequest):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to scrape Seaboard Marine: {str(e)}")
 
+    # CMA CGM Headless Scraper Integration
+    elif req.carrier == "CMA CGM":
+        session = SessionLocal()
+        try:
+            db_record = session.query(TrackingResponse).filter(
+                TrackingResponse.tracking_number == req.tracking_number,
+                TrackingResponse.carrier == "CMA CGM"
+            ).first()
+            
+            if db_record and db_record.last_updated_at:
+                if datetime.utcnow() - db_record.last_updated_at < timedelta(hours=12):
+                    return {
+                        "success": True,
+                        "carrier": req.carrier,
+                        "tracking_number": req.tracking_number,
+                        "data": db_record.raw_json,
+                        "normalized": {
+                            c.name: getattr(db_record, c.name).isoformat() if isinstance(getattr(db_record, c.name), datetime) else getattr(db_record, c.name) 
+                            for c in TrackingResponse.__table__.columns if c.name not in ["id", "raw_json", "last_updated_at"]
+                        },
+                        "cached": True,
+                        "last_updated": db_record.last_updated_at.isoformat()
+                    }
+
+            real_data = scrape_cma(req.tracking_number)
+            
+            if "error" in real_data:
+                return {
+                    "success": False,
+                    "carrier": req.carrier,
+                    "tracking_number": req.tracking_number,
+                    "error": real_data["error"]
+                }
+            parsed_data = real_data.get("normalized", {})
+            
+            if parsed_data:
+                if db_record:
+                    db_record.raw_json = real_data
+                    db_record.last_updated_at = datetime.utcnow()
+                    for k, v in parsed_data.items():
+                        setattr(db_record, k, v)
+                else:
+                    new_record = TrackingResponse(
+                        tracking_number=req.tracking_number,
+                        carrier="CMA CGM",
+                        raw_json=real_data,
+                        last_updated_at=datetime.utcnow(),
+                        **parsed_data
+                    )
+                    session.add(new_record)
+                session.commit()
+                
+            return {
+                "success": True,
+                "carrier": req.carrier,
+                "tracking_number": req.tracking_number,
+                "data": real_data,
+                "normalized": parsed_data,
+                "cached": False
+            }
+        except HTTPException as he:
+            session.rollback()
+            return {
+                "success": False,
+                "carrier": req.carrier,
+                "tracking_number": req.tracking_number,
+                "error": he.detail
+            }
+        except Exception as e:
+            session.rollback()
+            return {
+                "success": False,
+                "carrier": req.carrier,
+                "tracking_number": req.tracking_number,
+                "error": f"Failed to scrape CMA CGM: {str(e)}"
+            }
+        finally:
+            session.close()
+
     # For all other carriers (until you provide their APIs), we return mock data temporarily
     time.sleep(1.5)
-
     
     mock_data = {
         "status": "In Transit",
