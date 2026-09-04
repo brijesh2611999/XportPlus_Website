@@ -1095,11 +1095,17 @@ async def track_shipment(req: TrackingRequest):
             real_data = scrape_pil(req.tracking_number)
             if "error" in real_data:
                 raise HTTPException(status_code=500, detail=real_data["error"])
+                
+            from app.parsers.pil import parse_pil_response
+            parsed_data = parse_pil_response(real_data)
+            normalized = parsed_data.get("Data", {}) or {}
+            
             return {
                 "success": True,
                 "carrier": req.carrier,
                 "tracking_number": req.tracking_number,
-                "data": real_data
+                "data": real_data,
+                "normalized": normalized
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to scrape PIL: {str(e)}")
