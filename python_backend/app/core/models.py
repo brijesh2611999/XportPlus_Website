@@ -74,6 +74,27 @@ class TrackingResponse(Base):
     raw_json = Column(JSONB, nullable=True)
     last_updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+class AirTrackingResponse(Base):
+    __tablename__ = "air_tracking_responses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    carrier = Column(String, index=True, nullable=False)
+    awb_number = Column(String, index=True, nullable=False)
+    
+    # Air specific fields
+    status = Column(String, nullable=True)
+    latest_event_time = Column(String, nullable=True) # Stored as string or parsed to DateTime
+    origin_airport = Column(String, nullable=True)
+    destination_airport = Column(String, nullable=True)
+    flight_number = Column(String, nullable=True)
+    pieces_weight = Column(String, nullable=True)
+    eta = Column(String, nullable=True)
+    events = Column(JSONB, nullable=True) # Normalized events list
+
+    # RAW DATA
+    raw_json = Column(JSONB, nullable=True)
+    last_updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
 class SiteToken(Base):
     __tablename__ = "site_tokens"
 
