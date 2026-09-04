@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.tracking import router as tracking_router
+from app.air.api.tracking import router as air_tracking_router
 import os
 
 app = FastAPI(title="XPortPlus Tracking API")
@@ -21,8 +22,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the tracking router
+# Include the tracking routers
 app.include_router(tracking_router, prefix="/tracking", tags=["tracking"])
+app.include_router(air_tracking_router, prefix="/air", tags=["air_tracking"])
 
 @app.get("/")
 def read_root():
